@@ -116,7 +116,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
           <path d="M128 173c-5 0-9-4-9-9V91a8 8 0 1 1 17 0v73c0 5-3 9-8 9z" />
         </g>
       </svg></span><br><a id="aboutLink" class="btn">ABOUT</a><br><span id="statusText"></span></div>
-  <div id="addLocation">Add a new location to the map by clicking on its location</div>
+  <div id="addLocation"><span>Add a new location to the map by clicking on its location</span><button type="button" id="addLocationCancel" title="Cancel adding a location">&times;</button></div>
   <div id="myModal" class="modal">
 
     <div class="modal-content">
@@ -481,6 +481,20 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 map.addLayer(markers);
 let isInAddMode = false;
+let addModeButton: HTMLElement | null = null;
+
+// shared by the marker toggle button, the cancel button in the banner, and
+// clicking the map itself — all three ways of leaving "add a location" mode
+function setAddMode(active: boolean) {
+  isInAddMode = active;
+  const mapElement = document.getElementById('map');
+  if (mapElement) mapElement.style.cursor = active ? 'crosshair' : 'pointer';
+  document.getElementById('addLocation')?.classList.toggle('show', active);
+  // the marker icon only swaps color on hover, so without this there's no
+  // visible cue (once the mouse moves away) that add-mode is still active
+  addModeButton?.classList.toggle('active', active);
+}
+
 const customControl = L.Control.extend({
   options: {
     position: 'topleft',
@@ -496,6 +510,7 @@ const customControl = L.Control.extend({
     newLocationButton.className =
       'leaflet-bar-part leaflet-bar-part-single custom-button';
     newLocationButton.style.background = `url(/icons/marker.svg) center no-repeat, #fff`;
+    addModeButton = newLocationButton;
 
     newLocationButton.onmouseover = function () {
       newLocationButton.style.background = `url(/icons/marker-black.svg) center no-repeat, #fff`;
@@ -507,18 +522,7 @@ const customControl = L.Control.extend({
     newLocationButton.onclick = function (e) {
       e.preventDefault();
       e.stopPropagation();
-      const mapElement = document.getElementById('map');
-      const addLocation = document.getElementById('addLocation');
-      if (typeof mapElement !== null) {
-        if (isInAddMode) {
-          mapElement!.style.cursor = 'pointer';
-          addLocation!.style.display = 'none';
-        } else {
-          mapElement!.style.cursor = 'crosshair';
-          addLocation!.style.display = 'block';
-        }
-      }
-      isInAddMode = !isInAddMode;
+      setAddMode(!isInAddMode);
     };
     addControlDiv.append(newLocationButton);
 
@@ -1047,9 +1051,7 @@ document.querySelectorAll('.backToMap').forEach((b) => {
 
 map.addEventListener('click', (event: L.LeafletMouseEvent) => {
   if (isInAddMode) {
-    document.getElementById('map')!.style.cursor = 'pointer';
-    document.getElementById('addLocation')!.style.display = 'none';
-    isInAddMode = false;
+    setAddMode(false);
     document.querySelectorAll('.pages').forEach((p) => {
       p.classList.add('hidden');
     });
@@ -1063,4 +1065,9 @@ map.addEventListener('click', (event: L.LeafletMouseEvent) => {
         )}/${event.latlng.lat.toFixed(5)}/${event.latlng.lng.toFixed(5)}`
       );
   }
+});
+
+document.getElementById('addLocationCancel')?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  setAddMode(false);
 });
