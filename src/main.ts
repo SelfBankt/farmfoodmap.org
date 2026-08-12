@@ -504,6 +504,7 @@ const baseLayers = {
 
 const map = L.map('map', {
   layers: [osm],
+  zoomControl: false,
 }).setView([0, 0], 3);
 const moveMapToSavedPosition = () => {
   const c = JSON.parse(localStorage.center);
@@ -562,16 +563,17 @@ const customControl = L.Control.extend({
     const newLocationButton = L.DomUtil.create('input');
     newLocationButton.type = 'button';
     newLocationButton.title = 'Add a new location to the map';
+    newLocationButton.value = 'ADD FARM';
     newLocationButton.className =
       'leaflet-bar-part leaflet-bar-part-single custom-button';
-    newLocationButton.style.background = `url(/icons/marker.svg) center no-repeat, #fff`;
+    newLocationButton.style.background = `url(/icons/marker.svg) left 8px center no-repeat, #fff`;
     addModeButton = newLocationButton;
 
     newLocationButton.onmouseover = function () {
-      newLocationButton.style.background = `url(/icons/marker-black.svg) center no-repeat, #fff`;
+      newLocationButton.style.background = `url(/icons/marker-black.svg) left 8px center no-repeat, #fff`;
     };
     newLocationButton.onmouseout = function () {
-      newLocationButton.style.background = `url(/icons/marker.svg) center no-repeat, #fff`;
+      newLocationButton.style.background = `url(/icons/marker.svg) left 8px center no-repeat, #fff`;
     };
 
     newLocationButton.onclick = function (e) {
@@ -584,15 +586,16 @@ const customControl = L.Control.extend({
     const geoLocationButton = L.DomUtil.create('input');
     geoLocationButton.type = 'button';
     geoLocationButton.title = 'Move the map to my location.';
+    geoLocationButton.value = 'MY LOCATION';
     geoLocationButton.className =
       'leaflet-bar-part leaflet-bar-part-single custom-button';
-    geoLocationButton.style.background = `url(/icons/locate.svg) center no-repeat, #fff`;
+    geoLocationButton.style.background = `url(/icons/locate.svg) left 8px center no-repeat, #fff`;
 
     geoLocationButton.onmouseover = function () {
-      geoLocationButton.style.background = `url(/icons/locate-black.svg) center no-repeat, #fff`;
+      geoLocationButton.style.background = `url(/icons/locate-black.svg) left 8px center no-repeat, #fff`;
     };
     geoLocationButton.onmouseout = function () {
-      geoLocationButton.style.background = `url(/icons/locate.svg) center no-repeat, #fff`;
+      geoLocationButton.style.background = `url(/icons/locate.svg) left 8px center no-repeat, #fff`;
     };
 
     geoLocationButton.onclick = function (e) {
@@ -623,15 +626,16 @@ const customControl = L.Control.extend({
     const searchButton = L.DomUtil.create('input');
     searchButton.type = 'button';
     searchButton.title = 'Search for a location.';
+    searchButton.value = 'SEARCH';
     searchButton.className =
       'leaflet-bar-part leaflet-bar-part-single custom-button';
-    searchButton.style.background = `url(/icons/search.svg) center no-repeat, #fff`;
+    searchButton.style.background = `url(/icons/search.svg) left 8px center no-repeat, #fff`;
 
     searchButton.onmouseover = function () {
-      searchButton.style.background = `url(/icons/search-black.svg) center no-repeat, #fff`;
+      searchButton.style.background = `url(/icons/search-black.svg) left 8px center no-repeat, #fff`;
     };
     searchButton.onmouseout = function () {
-      searchButton.style.background = `url(/icons/search.svg) center no-repeat, #fff`;
+      searchButton.style.background = `url(/icons/search.svg) left 8px center no-repeat, #fff`;
     };
 
     searchButton.onclick = function (e) {
@@ -646,6 +650,9 @@ const customControl = L.Control.extend({
 });
 
 map.addControl(new customControl());
+// Added after the custom control (rather than left as the default auto-added control) so it
+// stacks below the ADD FARM/MY LOCATION/SEARCH buttons in the topleft corner, not above them.
+L.control.zoom({ position: 'topleft' }).addTo(map);
 
 const updateInfo = (message = 'MAP IS READY') => {
   const statusText = document.querySelector('#statusText');
