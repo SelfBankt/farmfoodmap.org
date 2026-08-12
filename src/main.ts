@@ -194,18 +194,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
         <input type="text" id="osmName" required>
       </label>
 
-      <fieldset>
-        <legend>Address <span class="field-tag optional">optional</span></legend>
-        <label>House name<input type="text" id="osmAddrHousename"></label>
-        <label>House number<input type="text" id="osmAddrHousenumber"></label>
-        <label>Street<input type="text" id="osmAddrStreet"></label>
-        <label>Suburb<input type="text" id="osmAddrSuburb"></label>
-        <label>City<input type="text" id="osmAddrCity"></label>
-        <label>State<input type="text" id="osmAddrState"></label>
-        <label>Province<input type="text" id="osmAddrProvince"></label>
-        <label>Postcode<input type="text" id="osmAddrPostcode"></label>
-        <label>Country<input type="text" id="osmAddrCountry"></label>
-      </fieldset>
+      <label>Description <span class="field-tag optional">optional</span>
+        <textarea id="osmDescription" placeholder="A sentence or two — objective, not an advert."></textarea>
+      </label>
 
       <fieldset>
         <legend>What they sell <span class="field-tag optional">optional</span></legend>
@@ -253,20 +244,45 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
         </datalist>
       </fieldset>
 
+      <label>Website <span class="field-tag optional">optional</span>
+        <input type="url" id="osmWebsite" placeholder="https://">
+      </label>
+
+      <label>Organic <span class="field-tag optional">optional</span>
+        <select id="osmOrganic">
+          <option value="">Unset</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+          <option value="only">Only</option>
+        </select>
+      </label>
+
+      <fieldset>
+        <legend>Other contact details <span class="field-tag optional">optional</span></legend>
+        <label>Phone<input type="tel" id="osmPhone"></label>
+        <label>Email<input type="email" id="osmEmail"></label>
+        <label>Facebook<input type="url" id="osmContactFacebook" placeholder="https://facebook.com/..."></label>
+        <label>Twitter / X<input type="url" id="osmContactTwitter" placeholder="https://twitter.com/..."></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Address <span class="field-tag optional">optional</span></legend>
+        <label>House name<input type="text" id="osmAddrHousename"></label>
+        <label>House number<input type="text" id="osmAddrHousenumber"></label>
+        <label>Street<input type="text" id="osmAddrStreet"></label>
+        <label>Suburb<input type="text" id="osmAddrSuburb"></label>
+        <label>City<input type="text" id="osmAddrCity"></label>
+        <label>State<input type="text" id="osmAddrState"></label>
+        <label>Province<input type="text" id="osmAddrProvince"></label>
+        <label>Postcode<input type="text" id="osmAddrPostcode"></label>
+        <label>Country<input type="text" id="osmAddrCountry"></label>
+      </fieldset>
+
       <label>Opening hours <span class="field-tag optional">optional</span>
         <input type="text" id="osmOpeningHours" placeholder="Mo-Fr 09:00-17:00; Sa-Su 10:00-17:00">
         <small>Days as the first two letters, times in 24h with a leading zero (<code>09:00</code> not
           <code>9:00</code>). <a href="https://wiki.openstreetmap.org/wiki/Key:opening_hours" target="_blank" rel="noopener noreferrer">More on the wiki</a>.</small>
       </label>
-
-      <fieldset>
-        <legend>Contact <span class="field-tag optional">optional</span></legend>
-        <label>Phone<input type="tel" id="osmPhone"></label>
-        <label>Website<input type="url" id="osmWebsite" placeholder="https://"></label>
-        <label>Email<input type="email" id="osmEmail"></label>
-        <label>Facebook<input type="url" id="osmContactFacebook" placeholder="https://facebook.com/..."></label>
-        <label>Twitter / X<input type="url" id="osmContactTwitter" placeholder="https://twitter.com/..."></label>
-      </fieldset>
 
       <fieldset>
         <legend>Payment <span class="field-tag optional">optional</span></legend>
@@ -304,23 +320,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
             <option value="no">No</option>
           </select>
         </label>
-        <label>Lightning (contactless)
-          <select id="osmPaymentLightningContactless">
-            <option value="">Unset</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
-        </label>
       </fieldset>
-
-      <label>Organic <span class="field-tag optional">optional</span>
-        <select id="osmOrganic">
-          <option value="">Unset</option>
-          <option value="yes">Yes</option>
-          <option value="no">No</option>
-          <option value="only">Only</option>
-        </select>
-      </label>
 
       <label>Wheelchair accessible <span class="field-tag optional">optional</span>
         <select id="osmWheelchair">
@@ -330,10 +330,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
           <option value="no">No</option>
         </select>
         <small>Only set this if you're sure — a sign you saw, or your own experience. If unsure, mention it in the description instead.</small>
-      </label>
-
-      <label>Description <span class="field-tag optional">optional</span>
-        <textarea id="osmDescription" placeholder="A sentence or two — objective, not an advert."></textarea>
       </label>
 
       <div class="form-actions">
@@ -1162,7 +1158,6 @@ const gatherFormTags = (): { [key: string]: string } => {
   set('currency:XBT', 'osmCurrencyXbt');
   set('payment:onchain', 'osmPaymentOnchain');
   set('payment:lightning', 'osmPaymentLightning');
-  set('payment:lightning_contactless', 'osmPaymentLightningContactless');
   set('organic', 'osmOrganic');
   set('wheelchair', 'osmWheelchair');
   set('phone', 'osmPhone');
@@ -1194,10 +1189,6 @@ const populateForm = (tags: { [key: string]: string }) => {
   setFieldValue('osmCurrencyXbt', tags['currency:XBT'] || '');
   setFieldValue('osmPaymentOnchain', tags['payment:onchain'] || '');
   setFieldValue('osmPaymentLightning', tags['payment:lightning'] || '');
-  setFieldValue(
-    'osmPaymentLightningContactless',
-    tags['payment:lightning_contactless'] || ''
-  );
   setFieldValue('osmOrganic', tags.organic || '');
   setFieldValue('osmWheelchair', tags.wheelchair || '');
   setFieldValue('osmPhone', tags.phone || '');
