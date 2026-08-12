@@ -8,6 +8,17 @@ import { LatLngBounds } from 'leaflet';
 import { debounce } from './debounce';
 import { MapData, MapDataObject } from './MapTypes';
 import globalMapData from './globalData.json';
+import type { PendingSubmission } from './osmAuth';
+import {
+  login as osmLogin,
+  logout as osmLogout,
+  handleRedirectCallback as osmHandleRedirectCallback,
+  isLoggedIn as osmIsLoggedIn,
+  getAccessToken as osmGetAccessToken,
+  stashPendingSubmission,
+  takePendingSubmission,
+  OSM_API_ROOT,
+} from './osmAuth';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -163,145 +174,173 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
     </p>
   </article>
 </section>
-<section id="mapEditPage" class="pages hidden">
+<section id="addLocationForm" class="pages hidden">
   <div class="backToMap btn">
     Back to the map
   </div>
-  <a href="" target="_blank" rel="noopener noreferrer" id="editorLink" class="btn">I understand, take me to the editor!</a>
   <article>
-    <h1>Editing the map</h1>
+    <h1 id="osmFormTitle">Add a location</h1>
     <p>
-      You will be directed to Open Street Map Editing tool which you can use to make changes to the map. Please follow
-      their rules and guidelines in order to have the most accurate information represented for everyone. We recommend
-      taking the brief tutorial, called the "Walkthrough" on how the editor works.
+      This submits directly to <a href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>,
+      the open map data that powers Farm Food Map — no separate editor needed. Please only add real,
+      existing farm shops, and see the notes under each field below for how OSM expects that field
+      to be filled in. For more detail than fits here, see the
+      <a href="https://wiki.openstreetmap.org/wiki/Main_Page" target="_blank" rel="noopener noreferrer">OpenStreetMap wiki</a>.
     </p>
-    <p>
-      There are a few important things for you to know in order for your map edits to register on the farmfoodmap.org
-      map:
-    </p>
-    <ul>
-      <li>Farm Food Map only displays "points" (AKA "nodes"), so make sure that you only edit points.</li>
-      <li>There is a form to input some standard things, like "Feature Type", "Name", "Address", "Hours" etc. As you
-        fill the form in, "Tags" will be added for each form field. Tags are where the information is stored and that is
-        where Farm Food Map looks for information to present to users. you may add fields to the form but only the
-        fields below will be listed on the map.</li>
-      <li>In order for a place to appear on Farm Food Map, it must include the tag <code>shop</code> set to
-        <code>farm</code>. This tag can be added by setting the Feature Type to "Farm Shop" or by expanding the tags
-        section and manually adding tags there.</li>
-      <li>Where a tag may have multiple values, please separate them with a semicolon and space ("<code>; </code>"), for
-        example: <code>produce</code>: <code>beef; lamb; milk</code> or <code>opening_hours</code>: <code>Mo-Fr 09:00-17:00; Sa-Su 10:00-17:00</code></li>
-      <li>You may have noticed that <code>opening_hours</code> was separated by an underscore (<code>_</code>). That is because tag keys
-        should not contain spaces.</li>
-    </ul>
-    <p>
-      These are the only tags that Farm Food Map displays currently:
-    </p>
-    <p>
-      For more information, see the <a href="https://wiki.openstreetmap.org/wiki/Main_Page" target="_blank" rel="noopener noreferrer">Open Street
-        Map Wiki</a>.
-    </p>
-    <h2><code>shop</code></h2>
-    <p>
-      <strong>MUST</strong> be set to <code>farm</code>. This is required to appear on the map.
-    </p>
-    <h2><code>name</code></h2>
-    <p>
-      Please add the name of the location.
-    </p>
-    <h2><code>addr:*</code></h2>
-    <p>
-      Tags relating to each part of the address, like <code>addr:housename</code>, <code>addr:housenumber</code>,
-      <code>addr:floor</code>, <code>addr:street</code>, <code>addr:suburb</code>, <code>addr:city</code>,
-      <code>addr:state</code>, <code>addr:province</code>, <code>addr:postcode</code>, <code>addr:country</code>. Use
-      only ones that apply. <a href="https://wiki.openstreetmap.org/wiki/Key:addr:*" target="_blank"
-        rel="noopener noreferrer">Wiki</a>
-    </p>
-    <h2><code>opening_hours</code></h2>
-    <p>
-      What hours is the location open represented by either a url to the opening hours on the location's website, or text,
-      for example: <code>Mo-Sa 09:00-17:00; Sa-Su 10:00-17:00</code>. <strong>Note:</strong> Days are represented by
-      the first two letters and times are in 24 hour format with a leading zero (<code>09:00</code>
-      <strong>NOT</strong> <code>9:00</code>). For more information on more complicated opening hours, please see the
-      <a href="https://wiki.openstreetmap.org/wiki/Key:opening_hours" target="_blank" rel="noopener noreferrer">wiki</a>
-    </p>
-    <h2><code>payment:*</code></h2>
-    <p>
-      This group of tags describes which payment methods are available and are indicated with a <code>yes</code>,
-      <code>no</code>, <code>only</code> or an <em>Interval</em> value (in the same format as <code>opening_hours</code> if,
-      for example, cards are only accepted during office hours). Furthermore, <code>payment:cash</code> set to "no" means
-      that you cannot pay with cash. These are a few very generic tags. If possible, they should be replaced by more
-      specific ones which are listed in the
-      <a href="https://wiki.openstreetmap.org/wiki/Key:payment:*" target="_blank" rel="noopener noreferrer">wiki</a>.
-      E.g. <code>payment:cards=*</code> is less specific than <code>payment:credit_cards=*</code> which in turn is less specific than e.g.
-      <code>payment:mastercard=*</code>. Many of these tags are especially useful to express that a whole group of payment options
-      is not
-      accepted, like <code>payment:cards=no</code>. <strong>NOTE:</strong> If a location accepts other currencies, like <a
-        href="https://bitcoin.org" target="_blank" rel="noopener noreferrer">Bitcoin</a>, please don't select it from
-      the list in the form, as it is an outdated way of indicating this, rather use <code>currency:XBT</code> set to
-      <code>yes</code>. There are tags for payment methods for Bitcoin and we ask that you use these if they apply:
-      <code>payment:onchain</code> <code>payment:lightning</code> <code>payment:lightning_contactless</code>
-    </p>
-    <p>Currently the map only displays cash and bitcoin.</p>
-    <h2><code>organic</code></h2>
-    <p>
-      Do they sell organic products? Possible values are <code>yes</code>, <code>no</code> or <code>only</code>. <a
-        href="https://wiki.openstreetmap.org/wiki/Key:organic" target="_blank" rel="noopener noreferrer">wiki</a>
-    </p>
-    <h2><code>phone</code></h2>
-    <p>
-      The telephone number with international dialing code, see the <a
-        href="https://wiki.openstreetmap.org/wiki/Key:phone" target="_blank" rel="noopener noreferrer">wiki</a> for more
-      details.
-    </p>
-    <h2><code>website</code></h2>
-    <p>
-      This is for the location's website only. For Wikipedia links, please use the <code>wikipedia</code> tag. For
-      social media links, please use the <code>contact:*</code> tag (see below) Please only include https links,
-      without any tracking parameters. See the <a href="https://wiki.openstreetmap.org/wiki/Key:website" target="_blank"
-        rel="noopener noreferrer">wiki</a> for more information.
-    </p>
-    <h2><code>email</code></h2>
-    <p>
-      The public email address of the location, see the <a href="https://wiki.openstreetmap.org/wiki/Key:email"
-        target="_blank" rel="noopener noreferrer">wiki</a> for more details.
-    </p>
-    <h2><code>contact:*</code></h2>
-    <p>
-      Please use this for all social media contacts, for example <code>contact:twitter</code> set to
-      <code>https://twitter.com/farmfoodmap</code> (without and tracking parameters). See the <a
-        href="https://wiki.openstreetmap.org/wiki/Key:contact:*" target="_blank" rel="noopener noreferrer">wiki</a>
-      for a full list.
-    </p>
-    <h2><code>produce / product</code></h2>
-    <p>
-      A guide by example. If the whole live animal/fish or plant is sold from the farm then tag it as <code>produce=*</code>.
-      If it is
-      killed and then sold with little processing then that is OK for tagging as produce. If the processing is
-      'extensive'
-      then it is a <code>product=*</code> not produce, so it should use the <code>product=*</code> key. Fuzzy like life. Use your judgement. If
-      the output of the feature is is man made or manufactured in a factory or part of industrial production the
-      <code>product=*</code>
-      tag should be used. Some examples for <code>produce</code> are
-      <code>vegetables; fruit; beef; lamb; pork; game; fruits; eggs; poultry; dairy; fish; honey</code> and some
-      examples for <code>product</code> are things like
-      <code>cider; beer; wine; olive oil; preserves; cream; butter; tallow; stock; sausages; biltong; jerky; leather goods;</code>.
-      <strong>Note:</strong> This is only a distinction for OSM, both categories will be grouped together on Farm Food Map. See the <a href="https://wiki.openstreetmap.org/wiki/Key:produce" target="_blank" rel="noopener noreferrer">wiki</a> for more information.
-    </p>
-    <h2><code>wheelchair</code></h2>
-    <p>
-      This tag may be used to mark places or ways that are suitable to be used with a wheelchair and a person with a disability who uses another mobility device (like a walker). It should only be used if you are sure about it, this can either be because there's a special sign or because of personal experience/someone with a wheelchair told you. If you are unsure, give more information in <code>description=*</code>.  See the <a href="https://wiki.openstreetmap.org/wiki/Key:wheelchair" target="_blank" rel="noopener noreferrer">wiki</a> for more information.
-    </p>
-    <h2><code>description</code></h2>
-    <p>
-      This is a free text field where you can write a sentence or two about the location. It must be objective and not
-      an opinion or an advert. Some suggestions to include might be things like "regenerative", "free range", "home
-      delivery", "online ordering", "tours" and "visitors".
-    </p>
-    <h2>Lastly...</h2>
-    <p>
-      There are two more tags that can be used to help show how recent the information is (although it is not currently displayed on the map): <code>survey:date</code> should be used when you have physically visited the location and <code>check_date</code> should be used when the location has been verified with local knowledge or extrapolation. Both of these tags require the date in ISO format: <code>yyyy-mm-dd</code>.
-    </p>
-    </article>
+    <div id="osmSubmitStatus"></div>
+    <form id="osmForm">
+      <label>Name*
+        <input type="text" id="osmName" required>
+      </label>
+
+      <fieldset>
+        <legend>Address</legend>
+        <label>House name<input type="text" id="osmAddrHousename"></label>
+        <label>House number<input type="text" id="osmAddrHousenumber"></label>
+        <label>Street<input type="text" id="osmAddrStreet"></label>
+        <label>Suburb<input type="text" id="osmAddrSuburb"></label>
+        <label>City<input type="text" id="osmAddrCity"></label>
+        <label>State<input type="text" id="osmAddrState"></label>
+        <label>Province<input type="text" id="osmAddrProvince"></label>
+        <label>Postcode<input type="text" id="osmAddrPostcode"></label>
+        <label>Country<input type="text" id="osmAddrCountry"></label>
+      </fieldset>
+
+      <label>Opening hours
+        <input type="text" id="osmOpeningHours" placeholder="Mo-Fr 09:00-17:00; Sa-Su 10:00-17:00">
+        <small>Days as the first two letters, times in 24h with a leading zero (<code>09:00</code> not
+          <code>9:00</code>). <a href="https://wiki.openstreetmap.org/wiki/Key:opening_hours" target="_blank" rel="noopener noreferrer">More on the wiki</a>.</small>
+      </label>
+
+      <fieldset>
+        <legend>Payment</legend>
+        <label>Cash
+          <select id="osmPaymentCash">
+            <option value="">Unset</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Bitcoin accepted</legend>
+        <p><small>Prefer these specific tags over the outdated "accepts bitcoin" tag.</small></p>
+        <label>Bitcoin (any form)
+          <select id="osmCurrencyXbt">
+            <option value="">Unset</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="only">Only</option>
+          </select>
+        </label>
+        <label>On-chain
+          <select id="osmPaymentOnchain">
+            <option value="">Unset</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label>Lightning
+          <select id="osmPaymentLightning">
+            <option value="">Unset</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label>Lightning (contactless)
+          <select id="osmPaymentLightningContactless">
+            <option value="">Unset</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+      </fieldset>
+
+      <label>Organic
+        <select id="osmOrganic">
+          <option value="">Unset</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+          <option value="only">Only</option>
+        </select>
+      </label>
+
+      <label>Wheelchair accessible
+        <select id="osmWheelchair">
+          <option value="">Unset</option>
+          <option value="yes">Yes</option>
+          <option value="limited">Limited</option>
+          <option value="no">No</option>
+        </select>
+        <small>Only set this if you're sure — a sign you saw, or your own experience. If unsure, mention it in the description instead.</small>
+      </label>
+
+      <fieldset>
+        <legend>Contact</legend>
+        <label>Phone<input type="tel" id="osmPhone"></label>
+        <label>Website<input type="url" id="osmWebsite" placeholder="https://"></label>
+        <label>Email<input type="email" id="osmEmail"></label>
+        <label>Facebook<input type="url" id="osmContactFacebook" placeholder="https://facebook.com/..."></label>
+        <label>Twitter / X<input type="url" id="osmContactTwitter" placeholder="https://twitter.com/..."></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>What they sell</legend>
+        <label>Produce
+          <small>Raw or lightly processed, e.g. vegetables, eggs, honey.</small>
+          <div class="chip-input" id="osmProduceChips">
+            <div class="chip-list"></div>
+            <input type="text" list="produceExamples" placeholder="Type and press Enter">
+          </div>
+        </label>
+        <datalist id="produceExamples">
+          <option value="vegetables"></option>
+          <option value="fruit"></option>
+          <option value="beef"></option>
+          <option value="lamb"></option>
+          <option value="pork"></option>
+          <option value="game"></option>
+          <option value="eggs"></option>
+          <option value="poultry"></option>
+          <option value="dairy"></option>
+          <option value="fish"></option>
+          <option value="honey"></option>
+        </datalist>
+        <label>Product
+          <small>More processed, e.g. cider, cheese, preserves.</small>
+          <div class="chip-input" id="osmProductChips">
+            <div class="chip-list"></div>
+            <input type="text" list="productExamples" placeholder="Type and press Enter">
+          </div>
+        </label>
+        <datalist id="productExamples">
+          <option value="cider"></option>
+          <option value="beer"></option>
+          <option value="wine"></option>
+          <option value="olive oil"></option>
+          <option value="preserves"></option>
+          <option value="cream"></option>
+          <option value="butter"></option>
+          <option value="tallow"></option>
+          <option value="stock"></option>
+          <option value="sausages"></option>
+          <option value="biltong"></option>
+          <option value="jerky"></option>
+          <option value="leather goods"></option>
+        </datalist>
+      </fieldset>
+
+      <label>Description
+        <textarea id="osmDescription" placeholder="A sentence or two — objective, not an advert."></textarea>
+      </label>
+
+      <div class="form-actions">
+        <button type="button" id="osmCancelBtn" class="btn backToMap">Cancel</button>
+        <button type="submit" id="osmSubmitBtn" class="btn">Submit to OpenStreetMap</button>
+      </div>
+    </form>
+  </article>
 </section>
 `;
 
@@ -630,7 +669,6 @@ const fetchData = debounce(() => {
     .then((r) => r.json())
     .then((j) => {
       updateInfo('Updating markers');
-      const currentMarkers = markers.getLayers();
       const allowed = [
         'shop',
         'amenity',
@@ -689,26 +727,7 @@ const fetchData = debounce(() => {
           !(mapData[pid] && JSON.stringify(mapData[pid]) === JSON.stringify(p))
         ) {
           // something has changed, update it
-          mapData[`id${p.id}`] = p;
-          const m = currentMarkers.find((item) => {
-            if (p.ll !== undefined) {
-              return item.getLatLng().equals(p.ll);
-            }
-            return false;
-          });
-          if (m) {
-            // update the current marker
-            const thisMarker = L.marker([p.lat, p.lon], {
-              icon: FFMM,
-            }).bindPopup(formatPopup(p));
-            markers.removeLayer(m).addLayer(thisMarker);
-          } else {
-            // new location, add to the map
-            const thisMarker = L.marker([p.lat, p.lon], {
-              icon: FFMM,
-            }).bindPopup(formatPopup(p));
-            markers.addLayer(thisMarker);
-          }
+          upsertMarker(p);
         }
       });
       updateInfo();
@@ -910,6 +929,512 @@ Object.values(globalMapData).forEach((p: MapData) => {
 });
 bulkMarkersToMap();
 
+// ---------------------------------------------------------------------------
+// In-app OSM submission (add/edit a location without leaving the app)
+// ---------------------------------------------------------------------------
+
+// Adds/updates a single marker in-place — the same L.marker/formatPopup pattern fetchData's
+// per-node loop already used, extracted so the post-submit optimistic render can reuse it too.
+const upsertMarker = (p: MapData): L.Marker => {
+  const ll = L.latLng(p.lat, p.lon);
+  const thisMarker = L.marker([p.lat, p.lon], { icon: FFMM }).bindPopup(formatPopup(p));
+  const existing = markers
+    .getLayers()
+    .find((item) => (item as L.Marker).getLatLng().equals(ll));
+  if (existing) {
+    markers.removeLayer(existing).addLayer(thisMarker);
+  } else {
+    markers.addLayer(thisMarker);
+  }
+  mapData[`id${p.id}`] = { ...p, ll };
+  return thisMarker;
+};
+
+type FormMode = 'add' | 'edit';
+type FormContext = {
+  mode: FormMode;
+  nodeId?: number;
+  version?: number;
+  lat: number;
+  lon: number;
+};
+let currentFormContext: FormContext | null = null;
+
+const xmlEscape = (str: string) =>
+  str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+const osmFetch = (path: string, options: RequestInit = {}) =>
+  fetch(`${OSM_API_ROOT}${path}`, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${osmGetAccessToken()}`,
+    },
+  });
+
+const throwOnError = async (res: Response) => {
+  if (!res.ok) {
+    throw { status: res.status, body: await res.text() };
+  }
+  return res;
+};
+
+const createChangeset = async (comment: string): Promise<number> => {
+  const body = `<osm><changeset><tag k="created_by" v="farmfoodmap.org"/><tag k="comment" v="${xmlEscape(
+    comment
+  )}"/></changeset></osm>`;
+  const res = await throwOnError(
+    await osmFetch('/api/0.6/changeset/create', { method: 'PUT', body })
+  );
+  return parseInt(await res.text());
+};
+
+const closeChangeset = async (changesetId: number): Promise<void> => {
+  await throwOnError(
+    await osmFetch(`/api/0.6/changeset/${changesetId}/close`, { method: 'PUT' })
+  );
+};
+
+const tagsToXml = (tags: { [key: string]: string }) =>
+  Object.entries(tags)
+    .filter(([, v]) => !!v)
+    .map(([k, v]) => `<tag k="${xmlEscape(k)}" v="${xmlEscape(v)}"/>`)
+    .join('');
+
+const createNode = async (
+  changesetId: number,
+  lat: number,
+  lon: number,
+  tags: { [key: string]: string }
+): Promise<number> => {
+  const body = `<osm><node changeset="${changesetId}" lat="${lat}" lon="${lon}">${tagsToXml(
+    tags
+  )}</node></osm>`;
+  const res = await throwOnError(
+    await osmFetch('/api/0.6/node/create', { method: 'PUT', body })
+  );
+  return parseInt(await res.text());
+};
+
+const updateNode = async (
+  nodeId: number,
+  changesetId: number,
+  version: number,
+  lat: number,
+  lon: number,
+  tags: { [key: string]: string }
+): Promise<void> => {
+  const body = `<osm><node id="${nodeId}" changeset="${changesetId}" version="${version}" lat="${lat}" lon="${lon}">${tagsToXml(
+    tags
+  )}</node></osm>`;
+  await throwOnError(
+    await osmFetch(`/api/0.6/node/${nodeId}`, { method: 'PUT', body })
+  );
+};
+
+const fetchNode = async (
+  nodeId: number
+): Promise<{
+  lat: number;
+  lon: number;
+  version: number;
+  tags: { [key: string]: string };
+}> => {
+  const res = await throwOnError(
+    await fetch(`${OSM_API_ROOT}/api/0.6/node/${nodeId}.json`)
+  );
+  const json = await res.json();
+  const el = json.elements[0];
+  return { lat: el.lat, lon: el.lon, version: el.version, tags: el.tags || {} };
+};
+
+// --- form field <-> tags -----------------------------------------------------
+
+const fieldValue = (id: string): string =>
+  (
+    document.getElementById(id) as
+      | HTMLInputElement
+      | HTMLSelectElement
+      | HTMLTextAreaElement
+      | null
+  )?.value.trim() || '';
+
+const setFieldValue = (id: string, v: string) => {
+  const el = document.getElementById(id) as
+    | HTMLInputElement
+    | HTMLSelectElement
+    | HTMLTextAreaElement
+    | null;
+  if (el) el.value = v || '';
+};
+
+const getChipValues = (containerId: string): string[] => {
+  const container = document.getElementById(containerId);
+  if (!container) return [];
+  return Array.from(container.querySelectorAll<HTMLElement>('.chip'))
+    .map((chip) => chip.dataset.value || '')
+    .filter(Boolean);
+};
+
+const addChip = (containerId: string, rawValue: string) => {
+  const value = rawValue.trim();
+  if (!value) return;
+  const list = document
+    .getElementById(containerId)
+    ?.querySelector('.chip-list');
+  if (!list) return;
+  if (
+    Array.from(list.children).some(
+      (c) => (c as HTMLElement).dataset.value === value
+    )
+  ) {
+    return;
+  }
+  const chip = document.createElement('span');
+  chip.className = 'chip';
+  chip.dataset.value = value;
+  chip.textContent = value;
+  const removeBtn = document.createElement('button');
+  removeBtn.type = 'button';
+  removeBtn.className = 'chipRemove';
+  removeBtn.title = `Remove ${value}`;
+  removeBtn.textContent = '×';
+  removeBtn.onclick = () => chip.remove();
+  chip.appendChild(removeBtn);
+  list.appendChild(chip);
+};
+
+const setChipValues = (containerId: string, values: string[]) => {
+  const list = document
+    .getElementById(containerId)
+    ?.querySelector('.chip-list');
+  if (list) list.innerHTML = '';
+  values.forEach((v) => addChip(containerId, v));
+};
+
+['osmProduceChips', 'osmProductChips'].forEach((containerId) => {
+  const input = document
+    .getElementById(containerId)
+    ?.querySelector('input') as HTMLInputElement | null;
+  if (!input) return;
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addChip(containerId, input.value.replace(/,$/, ''));
+      input.value = '';
+    }
+  });
+  input.addEventListener('blur', () => {
+    if (input.value.trim()) {
+      addChip(containerId, input.value);
+      input.value = '';
+    }
+  });
+});
+
+// Only the primary phone/website/email tags are exposed in the form, not the contact:* variants
+// of the same thing (contact:phone/website/email) — formatPopup already treats them as
+// interchangeable fallbacks, so asking users to fill in both would just be duplicate data entry.
+// contact:facebook/contact:twitter are kept since those genuinely aren't covered by any other field.
+const gatherFormTags = (): { [key: string]: string } => {
+  const tags: { [key: string]: string } = { shop: 'farm' };
+  const set = (key: string, id: string) => {
+    const v = fieldValue(id);
+    if (v) tags[key] = v;
+  };
+  set('name', 'osmName');
+  set('addr:housename', 'osmAddrHousename');
+  set('addr:housenumber', 'osmAddrHousenumber');
+  set('addr:street', 'osmAddrStreet');
+  set('addr:suburb', 'osmAddrSuburb');
+  set('addr:city', 'osmAddrCity');
+  set('addr:state', 'osmAddrState');
+  set('addr:province', 'osmAddrProvince');
+  set('addr:postcode', 'osmAddrPostcode');
+  set('addr:country', 'osmAddrCountry');
+  set('opening_hours', 'osmOpeningHours');
+  set('payment:cash', 'osmPaymentCash');
+  set('currency:XBT', 'osmCurrencyXbt');
+  set('payment:onchain', 'osmPaymentOnchain');
+  set('payment:lightning', 'osmPaymentLightning');
+  set('payment:lightning_contactless', 'osmPaymentLightningContactless');
+  set('organic', 'osmOrganic');
+  set('wheelchair', 'osmWheelchair');
+  set('phone', 'osmPhone');
+  set('website', 'osmWebsite');
+  set('email', 'osmEmail');
+  set('contact:facebook', 'osmContactFacebook');
+  set('contact:twitter', 'osmContactTwitter');
+  set('description', 'osmDescription');
+  const produce = getChipValues('osmProduceChips');
+  if (produce.length) tags.produce = produce.join('; ');
+  const product = getChipValues('osmProductChips');
+  if (product.length) tags.product = product.join('; ');
+  return tags;
+};
+
+const populateForm = (tags: { [key: string]: string }) => {
+  setFieldValue('osmName', tags.name || '');
+  setFieldValue('osmAddrHousename', tags['addr:housename'] || '');
+  setFieldValue('osmAddrHousenumber', tags['addr:housenumber'] || '');
+  setFieldValue('osmAddrStreet', tags['addr:street'] || '');
+  setFieldValue('osmAddrSuburb', tags['addr:suburb'] || '');
+  setFieldValue('osmAddrCity', tags['addr:city'] || '');
+  setFieldValue('osmAddrState', tags['addr:state'] || '');
+  setFieldValue('osmAddrProvince', tags['addr:province'] || '');
+  setFieldValue('osmAddrPostcode', tags['addr:postcode'] || '');
+  setFieldValue('osmAddrCountry', tags['addr:country'] || '');
+  setFieldValue('osmOpeningHours', tags.opening_hours || '');
+  setFieldValue('osmPaymentCash', tags['payment:cash'] || '');
+  setFieldValue('osmCurrencyXbt', tags['currency:XBT'] || '');
+  setFieldValue('osmPaymentOnchain', tags['payment:onchain'] || '');
+  setFieldValue('osmPaymentLightning', tags['payment:lightning'] || '');
+  setFieldValue(
+    'osmPaymentLightningContactless',
+    tags['payment:lightning_contactless'] || ''
+  );
+  setFieldValue('osmOrganic', tags.organic || '');
+  setFieldValue('osmWheelchair', tags.wheelchair || '');
+  setFieldValue('osmPhone', tags.phone || '');
+  setFieldValue('osmWebsite', tags.website || '');
+  setFieldValue('osmEmail', tags.email || '');
+  setFieldValue('osmContactFacebook', tags['contact:facebook'] || '');
+  setFieldValue('osmContactTwitter', tags['contact:twitter'] || '');
+  setFieldValue('osmDescription', tags.description || '');
+  setChipValues(
+    'osmProduceChips',
+    (tags.produce || '')
+      .split(';')
+      .map((s) => s.trim())
+      .filter(Boolean)
+  );
+  setChipValues(
+    'osmProductChips',
+    (tags.product || '')
+      .split(';')
+      .map((s) => s.trim())
+      .filter(Boolean)
+  );
+};
+
+const clearForm = () => populateForm({});
+
+// --- panel open/close, submit orchestration ----------------------------------
+
+const setSubmitStatus = (
+  text: string,
+  kind: 'info' | 'error' | 'success' = 'info'
+) => {
+  const el = document.getElementById('osmSubmitStatus');
+  if (!el) return;
+  el.className = kind;
+  el.textContent = text;
+};
+
+const updateSubmitButtonForAuthState = () => {
+  const btn = document.getElementById('osmSubmitBtn') as HTMLButtonElement | null;
+  if (!btn) return;
+  btn.disabled = false;
+  btn.textContent = osmIsLoggedIn()
+    ? 'Submit to OpenStreetMap'
+    : 'Log in with OpenStreetMap to submit';
+};
+
+const showFormPanel = () => {
+  document.querySelectorAll('.pages').forEach((p) => {
+    p.classList.add('hidden');
+  });
+  document.getElementById('addLocationForm')?.classList.remove('hidden');
+  updateSubmitButtonForAuthState();
+};
+
+const openAddLocationForm = (lat: number, lon: number) => {
+  currentFormContext = { mode: 'add', lat, lon };
+  clearForm();
+  const title = document.getElementById('osmFormTitle');
+  if (title) title.textContent = 'Add a location';
+  setSubmitStatus('');
+  showFormPanel();
+};
+
+const openEditLocationForm = async (nodeId: number) => {
+  currentFormContext = { mode: 'edit', nodeId, lat: 0, lon: 0 };
+  const title = document.getElementById('osmFormTitle');
+  if (title) title.textContent = 'Edit this location';
+  clearForm();
+  showFormPanel();
+  setSubmitStatus('Loading current details from OpenStreetMap…');
+  try {
+    const node = await fetchNode(nodeId);
+    currentFormContext = {
+      mode: 'edit',
+      nodeId,
+      version: node.version,
+      lat: node.lat,
+      lon: node.lon,
+    };
+    populateForm(node.tags);
+    setSubmitStatus('');
+  } catch (_e) {
+    setSubmitStatus(
+      'Could not load this location from OpenStreetMap. Please try again.',
+      'error'
+    );
+  }
+};
+
+const buildPendingSubmission = (tags: { [key: string]: string }): PendingSubmission | null => {
+  if (!currentFormContext) return null;
+  return {
+    mode: currentFormContext.mode,
+    nodeId: currentFormContext.nodeId,
+    version: currentFormContext.version,
+    lat: currentFormContext.lat,
+    lon: currentFormContext.lon,
+    tags,
+  };
+};
+
+const submitLocationForm = async () => {
+  if (!currentFormContext) return;
+  const tags = gatherFormTags();
+  if (!tags.name) {
+    setSubmitStatus('Please enter a name.', 'error');
+    return;
+  }
+
+  if (!osmIsLoggedIn()) {
+    const pending = buildPendingSubmission(tags);
+    if (pending) stashPendingSubmission(pending);
+    setSubmitStatus('Redirecting to OpenStreetMap to log in…');
+    await osmLogin();
+    return;
+  }
+
+  const submitBtn = document.getElementById('osmSubmitBtn') as HTMLButtonElement | null;
+  if (submitBtn) submitBtn.disabled = true;
+  setSubmitStatus('Submitting to OpenStreetMap…');
+
+  try {
+    let place: MapData;
+    if (currentFormContext.mode === 'add') {
+      const changesetId = await createChangeset('Add farm shop via farmfoodmap.org');
+      const nodeId = await createNode(
+        changesetId,
+        currentFormContext.lat,
+        currentFormContext.lon,
+        tags
+      );
+      await closeChangeset(changesetId);
+      place = { id: nodeId, lat: currentFormContext.lat, lon: currentFormContext.lon, tags };
+    } else {
+      if (!currentFormContext.nodeId || !currentFormContext.version) {
+        throw new Error('Missing node id/version for edit');
+      }
+      const changesetId = await createChangeset('Edit farm shop via farmfoodmap.org');
+      await updateNode(
+        currentFormContext.nodeId,
+        changesetId,
+        currentFormContext.version,
+        currentFormContext.lat,
+        currentFormContext.lon,
+        tags
+      );
+      await closeChangeset(changesetId);
+      place = {
+        id: currentFormContext.nodeId,
+        lat: currentFormContext.lat,
+        lon: currentFormContext.lon,
+        tags,
+      };
+    }
+    const marker = upsertMarker(place);
+    setSubmitStatus(
+      "Added! You can see it here right away — it's live on OpenStreetMap now, but it may take a while to show up for other visitors, since Farm Food Map's dataset only refreshes periodically.",
+      'success'
+    );
+    setTimeout(() => {
+      backToMap();
+      marker.openPopup();
+    }, 1800);
+  } catch (err: any) {
+    if (submitBtn) submitBtn.disabled = false;
+    if (err?.status === 401) {
+      osmLogout();
+      const pending = buildPendingSubmission(tags);
+      if (pending) stashPendingSubmission(pending);
+      setSubmitStatus(
+        'Your OpenStreetMap login expired. Please log in again to finish submitting.',
+        'error'
+      );
+      updateSubmitButtonForAuthState();
+      return;
+    }
+    if (err?.status === 409 && currentFormContext.mode === 'edit' && currentFormContext.nodeId) {
+      try {
+        const fresh = await fetchNode(currentFormContext.nodeId);
+        currentFormContext.version = fresh.version;
+        currentFormContext.lat = fresh.lat;
+        currentFormContext.lon = fresh.lon;
+        populateForm(fresh.tags);
+        setSubmitStatus(
+          'This location changed on OpenStreetMap since you opened it. Its latest details are shown above — please review and resubmit.',
+          'error'
+        );
+      } catch (_e2) {
+        setSubmitStatus(
+          'This location changed on OpenStreetMap since you opened it. Please reopen it and try again.',
+          'error'
+        );
+      }
+      return;
+    }
+    setSubmitStatus(
+      err?.body
+        ? `Something went wrong: ${err.body}`
+        : 'Something went wrong submitting to OpenStreetMap. You can try again.',
+      'error'
+    );
+  }
+};
+
+document.getElementById('osmForm')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  submitLocationForm();
+});
+
+// If we're coming back from an OSM OAuth redirect, complete the token exchange and restore
+// whatever form the user had filled in before being sent to log in.
+(async () => {
+  const result = await osmHandleRedirectCallback();
+  if (result === 'none') return;
+  const pending = takePendingSubmission();
+  if (!pending) return;
+  currentFormContext = {
+    mode: pending.mode,
+    nodeId: pending.nodeId,
+    version: pending.version,
+    lat: pending.lat,
+    lon: pending.lon,
+  };
+  const title = document.getElementById('osmFormTitle');
+  if (title) {
+    title.textContent = pending.mode === 'add' ? 'Add a location' : 'Edit this location';
+  }
+  populateForm(pending.tags);
+  showFormPanel();
+  setSubmitStatus(
+    osmIsLoggedIn()
+      ? 'Logged in — review and submit below.'
+      : "Login didn't complete. Please try logging in again.",
+    osmIsLoggedIn() ? 'success' : 'error'
+  );
+})();
+
 window.sharePopup = async (button: HTMLElement, text: string) => {
   let shareData: { title?: string; text?: string; url?: string } = {};
   try {
@@ -1012,23 +1537,12 @@ if (
 }
 
 window.editMap = (nodeId = '') => {
-  document.querySelectorAll('.pages').forEach((p) => {
-    p.classList.add('hidden');
-  });
-  const c = JSON.parse(localStorage.center);
-  document.getElementById('mapEditPage')?.classList.remove('hidden');
-  document
-    .getElementById('editorLink')
-    ?.setAttribute(
-      'href',
-      nodeId
-        ? `https://www.openstreetmap.org/edit?node=${nodeId}#map=${parseInt(
-            localStorage.zoom
-          )}/${parseFloat(c.lat).toFixed(5)}/${parseFloat(c.lng).toFixed(5)}`
-        : `https://www.openstreetmap.org/edit?#map=${parseInt(
-            localStorage.zoom
-          )}/${parseFloat(c.lat).toFixed(5)}/${parseFloat(c.lng).toFixed(5)}`
-    );
+  const id = parseInt(nodeId);
+  if (!id) {
+    console.warn('editMap called without a valid node id');
+    return;
+  }
+  openEditLocationForm(id);
 };
 
 const backToMap = () => {
@@ -1052,18 +1566,7 @@ document.querySelectorAll('.backToMap').forEach((b) => {
 map.addEventListener('click', (event: L.LeafletMouseEvent) => {
   if (isInAddMode) {
     setAddMode(false);
-    document.querySelectorAll('.pages').forEach((p) => {
-      p.classList.add('hidden');
-    });
-    document.getElementById('mapEditPage')?.classList.remove('hidden');
-    document
-      .getElementById('editorLink')
-      ?.setAttribute(
-        'href',
-        `https://www.openstreetmap.org/edit?#map=${parseInt(
-          localStorage.zoom
-        )}/${event.latlng.lat.toFixed(5)}/${event.latlng.lng.toFixed(5)}`
-      );
+    openAddLocationForm(event.latlng.lat, event.latlng.lng);
   }
 });
 
