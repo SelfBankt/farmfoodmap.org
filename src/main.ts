@@ -511,7 +511,7 @@ const customControl = L.Control.extend({
     searchBoxInput.autocomplete = 'off';
     searchBoxInput.className =
       'leaflet-bar-part leaflet-bar-part-single custom-button search-input';
-    searchBoxInput.style.background = `url(/icons/search.svg) left 8px center no-repeat, #fff`;
+    searchBoxInput.style.background = `url(/icons/search.svg) left 8px center no-repeat, var(--card-bg)`;
     searchWrap.append(searchBoxInput);
 
     const searchResultsDiv = L.DomUtil.create('div');
@@ -594,14 +594,14 @@ const customControl = L.Control.extend({
     newLocationButton.value = 'ADD FARM';
     newLocationButton.className =
       'leaflet-bar-part leaflet-bar-part-single custom-button';
-    newLocationButton.style.background = `url(/icons/marker.svg) left 8px center no-repeat, #fff`;
+    newLocationButton.style.background = `url(/icons/marker.svg) left 8px center no-repeat, var(--card-bg)`;
     addModeButton = newLocationButton;
 
     newLocationButton.onmouseover = function () {
-      newLocationButton.style.background = `url(/icons/marker-black.svg) left 8px center no-repeat, #fff`;
+      newLocationButton.style.background = `url(/icons/marker-black.svg) left 8px center no-repeat, var(--card-bg)`;
     };
     newLocationButton.onmouseout = function () {
-      newLocationButton.style.background = `url(/icons/marker.svg) left 8px center no-repeat, #fff`;
+      newLocationButton.style.background = `url(/icons/marker.svg) left 8px center no-repeat, var(--card-bg)`;
     };
 
     newLocationButton.onclick = function (e) {
@@ -626,13 +626,13 @@ const customControl = L.Control.extend({
     geoLocationButton.value = 'MY LOCATION';
     geoLocationButton.className =
       'leaflet-bar-part leaflet-bar-part-single custom-button';
-    geoLocationButton.style.background = `url(/icons/locate.svg) left 8px center no-repeat, #fff`;
+    geoLocationButton.style.background = `url(/icons/locate.svg) left 8px center no-repeat, var(--card-bg)`;
 
     geoLocationButton.onmouseover = function () {
-      geoLocationButton.style.background = `url(/icons/locate-black.svg) left 8px center no-repeat, #fff`;
+      geoLocationButton.style.background = `url(/icons/locate-black.svg) left 8px center no-repeat, var(--card-bg)`;
     };
     geoLocationButton.onmouseout = function () {
-      geoLocationButton.style.background = `url(/icons/locate.svg) left 8px center no-repeat, #fff`;
+      geoLocationButton.style.background = `url(/icons/locate.svg) left 8px center no-repeat, var(--card-bg)`;
     };
 
     geoLocationButton.onclick = function (e) {
