@@ -6,8 +6,9 @@ import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet/dist/leaflet.css';
 import { LatLngBounds } from 'leaflet';
 import { debounce } from './debounce';
-import { MapData, MapDataObject } from './MapTypes';
+import { MapData, MapDataObject, NostrDataObject } from './MapTypes';
 import globalMapData from './globalData.json';
+import nostrData from './nostrData.json';
 import type { PendingSubmission } from './osmAuth';
 import {
   login as osmLogin,
@@ -898,7 +899,16 @@ const formatPopup = (place: MapData): string => {
   ) {
     shareData.text += ` Bitcoin accepted here!`;
   }
+  if (p.nostr) shareData.text += ` Verified on Nostr.`;
+  const nostrBadge = p.nostr
+    ? `<div class="nostr-badge" title="NIP-05 verified — checked ${new Date(
+        p.nostr.verifiedAt
+      ).toLocaleDateString()}">✔ Nostr verified: <a href="https://njump.me/${
+        p.nostr.npub
+      }" target="_blank" rel="noopener noreferrer">${p.nostr.nip05}</a></div>`
+    : '';
   let info = `<strong>${shopName}</strong><br>
+        ${nostrBadge}
         ${
           address.length ? `<small>${address.join('<br>')}</small><br>` : ''
         }<br>
@@ -972,9 +982,11 @@ const bulkMarkersToMap = (arr = Object.values(mapData)) => {
 };
 Object.values(globalMapData).forEach((p: MapData) => {
   const pid: string = `id${p.id}`;
+  const nostr = (nostrData as NostrDataObject)[pid];
   const place = {
     ll: L.latLng(p.lat, p.lon),
     ...p,
+    ...(nostr ? { nostr } : {}),
   };
   if (Object.prototype.hasOwnProperty.call(globalMapData, pid)) {
     if (!mapData[pid]) {
@@ -992,7 +1004,14 @@ bulkMarkersToMap();
 // per-node loop already used, extracted so the post-submit optimistic render can reuse it too.
 const upsertMarker = (p: MapData): L.Marker => {
   const ll = L.latLng(p.lat, p.lon);
-  const thisMarker = L.marker([p.lat, p.lon], { icon: FFMM }).bindPopup(formatPopup(p));
+  // Live Overpass data and post-submit OSM responses never carry a `nostr` field (it's
+  // farmfoodmap's own data, not an OSM tag) — re-attach it here or a pan/zoom refresh or an
+  // edit would silently drop a previously-shown verified badge.
+  const nostr = (nostrData as NostrDataObject)[`id${p.id}`];
+  const place = { ...p, ...(nostr ? { nostr } : {}) };
+  const thisMarker = L.marker([p.lat, p.lon], { icon: FFMM }).bindPopup(
+    formatPopup(place)
+  );
   const existing = markers
     .getLayers()
     .find((item) => (item as L.Marker).getLatLng().equals(ll));
@@ -1001,7 +1020,7 @@ const upsertMarker = (p: MapData): L.Marker => {
   } else {
     markers.addLayer(thisMarker);
   }
-  mapData[`id${p.id}`] = { ...p, ll };
+  mapData[`id${p.id}`] = { ...place, ll };
   return thisMarker;
 };
 

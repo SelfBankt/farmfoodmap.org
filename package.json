@@ -8,14 +8,16 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "fetch": "node ./fetchGlobalData.mjs",
-    "git": "npm run fetch && npm run build && git pull && git add . && git commit -m \"$MSG\" && git push"
+    "fetch:nostr": "node ./fetchNostrIdentities.mjs",
+    "git": "npm run fetch && npm run fetch:nostr && npm run build && git pull && git add . && git commit -m \"$MSG\" && git push"
   },
   "devDependencies": {
     "@types/intl": "1.2.0",
     "@types/leaflet": "1.9.0",
     "@vitejs/plugin-basic-ssl": "^1.2.0",
     "node-fetch": "3.3.0",
-    "typescript": "4.6.4",
+    "nostr-tools": "^2.24.1",
+    "typescript": "^5.9.3",
     "vite": "3.2.3"
   },
   "dependencies": {

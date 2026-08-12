@@ -494,6 +494,22 @@ svg.leaflet-attribution-flag {
   min-width: 140px;
 }
 
+.nostr-badge {
+  display: inline-block;
+  margin: 2px 0 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--ffm-green-glass);
+  color: #ffffff;
+  font-size: 0.78em;
+  font-weight: 600;
+}
+
+.nostr-badge a {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
 .leaflet-popup-content-wrapper {
   background-color: var(--card-bg) !important;
   color: var(--card-text) !important;
