@@ -74,14 +74,19 @@ svg.leaflet-attribution-flag {
   z-index: 999;
   padding: 14px;
   border-radius: var(--radius-md);
-  left: 20px;
+  left: 10px;
   font-size: x-small;
   color: var(--ffm-green);
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
   cursor: pointer;
-  width: 150px;
+  width: 148px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
 }
 
 #addLocation {
@@ -128,7 +133,7 @@ svg.leaflet-attribution-flag {
   position: absolute;
   bottom: 40px;
   z-index: 999;
-  left: 20px;
+  left: 10px;
   width: 40px;
   height: 40px;
   border-radius: var(--radius-sm);
