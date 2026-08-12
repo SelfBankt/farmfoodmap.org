@@ -29,7 +29,7 @@ export const OSM_API_ROOT = OSM_WEB_ROOT;
 // https://farmfoodmap.org/ and https://farmfoodmap-org.vercel.app/ on the same application.
 const OSM_CLIENT_ID = isDev
   ? 'REPLACE_WITH_SANDBOX_CLIENT_ID'
-  : 'REPLACE_WITH_PRODUCTION_CLIENT_ID';
+  : 'jUWxmcBONdS_A7pv_ikAw2Eu4iEqLGsfHHgoyu79oC0';
 
 const SCOPE = 'write_api';
 
