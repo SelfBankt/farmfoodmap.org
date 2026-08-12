@@ -25,7 +25,7 @@
   --card-text: #1a1a1a;
   --card-text-muted: #5a5a5a;
   --card-border: rgba(255, 255, 255, 0.4);
-  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --card-shadow: 0 3px 14px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   --glass-blur: blur(18px);
   --ffm-green-glass: rgba(61, 146, 81, 0.8);
   --radius-md: 12px;
@@ -191,8 +191,11 @@ svg.leaflet-attribution-flag {
   -webkit-backdrop-filter: var(--glass-blur);
 }
 
+/* !important because elements toggled by this class (#infoBarWrap, #settings via
+   .custom-button) declare their own `display` at equal-or-higher specificity, which
+   would otherwise silently win over this class regardless of add/remove order. */
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 .svg-social {

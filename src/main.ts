@@ -106,6 +106,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
   </div>
   <div id="settings" class="custom-button" onclick="()=>{}"></div>
   <div id="infoBarWrap" class="hidden">
+  <span id="statusText"></span>
   <div id="infoBar" onclick="()=>{}">
     <a href="https://twitter.com/farmfoodmap" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter / X"><svg xmlns="http://www.w3.org/2000/svg" class="svg-social"
         id="svg-icon-twitter" viewBox="0 0 512 512">
@@ -129,7 +130,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
       </svg></span>
     <a id="aboutLink" class="btn" title="Learn more about Farm Food Map">ABOUT</a>
   </div>
-  <span id="statusText"></span>
   </div>
   <div id="myModal" class="modal">
 
