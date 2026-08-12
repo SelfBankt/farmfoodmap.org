@@ -104,10 +104,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
   <div id="heading">
     <img src="/FFM_logo.png" />
   </div>
-  <div id="searchContainer" class="hidden">
-    <input type="text" placeholder="Search.." id="searchBox">
-    <div id="searchResults"></div>
-  </div>
   <div id="settings" class="custom-button" onclick="()=>{}"></div>
   <div id="infoBar" class="hidden" onclick="()=>{}">
     <a href="https://twitter.com/farmfoodmap" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter / X"><svg xmlns="http://www.w3.org/2000/svg" class="svg-social"
@@ -133,7 +129,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
     <a id="aboutLink" class="btn" title="Learn more about Farm Food Map">ABOUT</a>
     <span id="statusText"></span>
   </div>
-  <div id="addLocation"><span>Add a new location to the map by clicking on its location</span><button type="button" id="addLocationCancel" title="Cancel adding a location">&times;</button></div>
   <div id="myModal" class="modal">
 
     <div class="modal-content">
@@ -368,69 +363,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
 
 let bounds: LatLngBounds;
 
-const searchBox = document.getElementById('searchBox') as HTMLInputElement;
-searchBox!.addEventListener('input', () => {
-  const text = searchBox!.value;
-  const resultsDiv = document.getElementById('searchResults') as HTMLDivElement;
-  resultsDiv.innerHTML = '';
-  if (text.length < 4) return;
-  let results: MapData[] = [];
-  Object.values(mapData).map((shop) => {
-    // first add ones that have matching names
-    if (shop.tags.name?.includes(text)) results.push(shop);
-  });
-  Object.values(mapData).map((shop) => {
-    // next add any address matches
-    for (const tag in shop.tags) {
-      if (Object.prototype.hasOwnProperty.call(shop.tags, tag)) {
-        const tagValue = shop.tags[tag];
-        if (tag.startsWith('addr') && tagValue.includes(text)) {
-          results.push(shop);
-          break;
-        }
-      }
-    }
-  });
-  Object.values(mapData).map((shop) => {
-    // next add any remaining matches
-    for (const tag in shop.tags) {
-      if (Object.prototype.hasOwnProperty.call(shop.tags, tag)) {
-        const tagValue = shop.tags[tag];
-        if (
-          !tag.startsWith('addr') &&
-          tag !== 'name' &&
-          tagValue.includes(text)
-        ) {
-          results.push(shop);
-          break;
-        }
-      }
-    }
-  });
-  // Put the visible ones first
-  if (bounds) {
-    const inBounds = results.filter((shop) =>
-      bounds.contains({ lat: shop.lat, lng: shop.lon })
-    );
-    const outBounds = results.filter(
-      (shop) => !bounds.contains({ lat: shop.lat, lng: shop.lon })
-    );
-    results = [...inBounds, ...outBounds];
-  }
-  results.forEach((shop) => {
-    const resultDiv = document.createElement('div');
-    resultDiv.className = 'searchResult';
-    const address = makeAddressArray(shop);
-    resultDiv.innerHTML = `<strong>${
-      shop.tags.name || 'Unknown Name'
-    }</strong><br><small>${
-      address.length ? `${address.join(', ')}` : 'Unknown Address'
-    }</small>`;
-    resultDiv.onclick = () => map.setView({ lat: shop.lat, lng: shop.lon }, 19);
-    resultsDiv.appendChild(resultDiv);
-  });
-});
-
 const markers = L.markerClusterGroup({
   chunkedLoading: true,
 });
@@ -566,6 +498,96 @@ const customControl = L.Control.extend({
     const addControlDiv = L.DomUtil.create('div');
     addControlDiv.style.border = 'none';
 
+    // --- SEARCH (first) — a real text input typed into directly, with results
+    // dropping down right below it, rather than opening a separate box elsewhere ---
+    const searchWrap = L.DomUtil.create('div');
+    searchWrap.className = 'control-row';
+
+    const searchBoxInput = L.DomUtil.create('input') as HTMLInputElement;
+    searchBoxInput.type = 'text';
+    searchBoxInput.id = 'searchBox';
+    searchBoxInput.title = 'Search for a location';
+    searchBoxInput.placeholder = 'SEARCH';
+    searchBoxInput.autocomplete = 'off';
+    searchBoxInput.className =
+      'leaflet-bar-part leaflet-bar-part-single custom-button search-input';
+    searchBoxInput.style.background = `url(/icons/search.svg) left 8px center no-repeat, #fff`;
+    searchWrap.append(searchBoxInput);
+
+    const searchResultsDiv = L.DomUtil.create('div');
+    searchResultsDiv.id = 'searchResults';
+    searchWrap.append(searchResultsDiv);
+
+    searchBoxInput.addEventListener('input', () => {
+      const text = searchBoxInput.value;
+      searchResultsDiv.innerHTML = '';
+      if (text.length < 4) return;
+      let results: MapData[] = [];
+      Object.values(mapData).map((shop) => {
+        // first add ones that have matching names
+        if (shop.tags.name?.includes(text)) results.push(shop);
+      });
+      Object.values(mapData).map((shop) => {
+        // next add any address matches
+        for (const tag in shop.tags) {
+          if (Object.prototype.hasOwnProperty.call(shop.tags, tag)) {
+            const tagValue = shop.tags[tag];
+            if (tag.startsWith('addr') && tagValue.includes(text)) {
+              results.push(shop);
+              break;
+            }
+          }
+        }
+      });
+      Object.values(mapData).map((shop) => {
+        // next add any remaining matches
+        for (const tag in shop.tags) {
+          if (Object.prototype.hasOwnProperty.call(shop.tags, tag)) {
+            const tagValue = shop.tags[tag];
+            if (
+              !tag.startsWith('addr') &&
+              tag !== 'name' &&
+              tagValue.includes(text)
+            ) {
+              results.push(shop);
+              break;
+            }
+          }
+        }
+      });
+      // Put the visible ones first
+      if (bounds) {
+        const inBounds = results.filter((shop) =>
+          bounds.contains({ lat: shop.lat, lng: shop.lon })
+        );
+        const outBounds = results.filter(
+          (shop) => !bounds.contains({ lat: shop.lat, lng: shop.lon })
+        );
+        results = [...inBounds, ...outBounds];
+      }
+      results.forEach((shop) => {
+        const resultDiv = document.createElement('div');
+        resultDiv.className = 'searchResult';
+        const address = makeAddressArray(shop);
+        resultDiv.innerHTML = `<strong>${
+          shop.tags.name || 'Unknown Name'
+        }</strong><br><small>${
+          address.length ? `${address.join(', ')}` : 'Unknown Address'
+        }</small>`;
+        resultDiv.onclick = () =>
+          map.setView({ lat: shop.lat, lng: shop.lon }, 19);
+        searchResultsDiv.appendChild(resultDiv);
+      });
+    });
+
+    addControlDiv.append(searchWrap);
+
+    // --- ADD FARM (second) — the "click the map" hint sits directly beside
+    // this button (via the wrapping .control-row's position:relative), rather
+    // than as a banner at the bottom of the screen ---
+    const addFarmWrap = L.DomUtil.create('div');
+    addFarmWrap.className = 'control-row';
+
     const newLocationButton = L.DomUtil.create('input');
     newLocationButton.type = 'button';
     newLocationButton.title = 'Add a new location to the map';
@@ -587,8 +609,17 @@ const customControl = L.Control.extend({
       e.stopPropagation();
       setAddMode(!isInAddMode);
     };
-    addControlDiv.append(newLocationButton);
+    addFarmWrap.append(newLocationButton);
 
+    const addLocationHint = L.DomUtil.create('div');
+    addLocationHint.id = 'addLocation';
+    addLocationHint.innerHTML =
+      '<span>Add a new location to the map by clicking on its location</span><button type="button" id="addLocationCancel" title="Cancel adding a location">&times;</button>';
+    addFarmWrap.append(addLocationHint);
+
+    addControlDiv.append(addFarmWrap);
+
+    // --- MY LOCATION (third, below the other two) ---
     const geoLocationButton = L.DomUtil.create('input');
     geoLocationButton.type = 'button';
     geoLocationButton.title = 'Move the map to my location.';
@@ -628,28 +659,6 @@ const customControl = L.Control.extend({
       }
     };
     addControlDiv.append(geoLocationButton);
-
-    const searchButton = L.DomUtil.create('input');
-    searchButton.type = 'button';
-    searchButton.title = 'Search for a location.';
-    searchButton.value = 'SEARCH';
-    searchButton.className =
-      'leaflet-bar-part leaflet-bar-part-single custom-button';
-    searchButton.style.background = `url(/icons/search.svg) left 8px center no-repeat, #fff`;
-
-    searchButton.onmouseover = function () {
-      searchButton.style.background = `url(/icons/search-black.svg) left 8px center no-repeat, #fff`;
-    };
-    searchButton.onmouseout = function () {
-      searchButton.style.background = `url(/icons/search.svg) left 8px center no-repeat, #fff`;
-    };
-
-    searchButton.onclick = function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      document.getElementById('searchContainer')?.classList.toggle('hidden');
-    };
-    addControlDiv.append(searchButton);
 
     return addControlDiv;
   },
