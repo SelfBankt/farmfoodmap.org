@@ -679,6 +679,11 @@ const updateInfo = (message = 'MAP IS READY') => {
 };
 updateInfo();
 
+window.addEventListener('offline', () =>
+  updateInfo('OFFLINE — showing saved data')
+);
+window.addEventListener('online', () => updateInfo());
+
 const setBounds = debounce(() => {
   bounds = map.getBounds();
   const z = map.getZoom();
@@ -775,7 +780,12 @@ const fetchData = debounce(() => {
       updateInfo();
       fetchedBounds.push(currentBounds);
     })
-    .catch((e) => console.error('e :>> ', e));
+    .catch((e) => {
+      console.error('e :>> ', e);
+      updateInfo(
+        navigator.onLine ? 'MAP IS READY' : 'OFFLINE — showing saved data'
+      );
+    });
 }, 1000);
 
 const makeAddressArray = (p: MapData) => {
