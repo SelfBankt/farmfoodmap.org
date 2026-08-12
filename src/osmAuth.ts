@@ -28,7 +28,7 @@ export const OSM_API_ROOT = OSM_WEB_ROOT;
 // redirectUri() below) — for production that means registering BOTH
 // https://farmfoodmap.org/ and https://farmfoodmap-org.vercel.app/ on the same application.
 const OSM_CLIENT_ID = isDev
-  ? 'REPLACE_WITH_SANDBOX_CLIENT_ID'
+  ? 'F-Czq_ytYDOtS56mchkaOyFuWfv-ZRpoSEwDVfhwwPM'
   : 'jUWxmcBONdS_A7pv_ikAw2Eu4iEqLGsfHHgoyu79oC0';
 
 const SCOPE = 'write_api';
