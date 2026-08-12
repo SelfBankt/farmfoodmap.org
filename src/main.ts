@@ -187,14 +187,15 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
       to be filled in. For more detail than fits here, see the
       <a href="https://wiki.openstreetmap.org/wiki/Main_Page" target="_blank" rel="noopener noreferrer">OpenStreetMap wiki</a>.
     </p>
+    <p><strong>Only the name is required</strong> — everything else is optional, so feel free to submit with just that and come back to add more later.</p>
     <div id="osmSubmitStatus"></div>
     <form id="osmForm">
-      <label>Name*
+      <label>Name <span class="field-tag required">Required</span>
         <input type="text" id="osmName" required>
       </label>
 
       <fieldset>
-        <legend>Address</legend>
+        <legend>Address <span class="field-tag optional">optional</span></legend>
         <label>House name<input type="text" id="osmAddrHousename"></label>
         <label>House number<input type="text" id="osmAddrHousenumber"></label>
         <label>Street<input type="text" id="osmAddrStreet"></label>
@@ -206,87 +207,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
         <label>Country<input type="text" id="osmAddrCountry"></label>
       </fieldset>
 
-      <label>Opening hours
-        <input type="text" id="osmOpeningHours" placeholder="Mo-Fr 09:00-17:00; Sa-Su 10:00-17:00">
-        <small>Days as the first two letters, times in 24h with a leading zero (<code>09:00</code> not
-          <code>9:00</code>). <a href="https://wiki.openstreetmap.org/wiki/Key:opening_hours" target="_blank" rel="noopener noreferrer">More on the wiki</a>.</small>
-      </label>
-
       <fieldset>
-        <legend>Payment</legend>
-        <label>Cash
-          <select id="osmPaymentCash">
-            <option value="">Unset</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
-        </label>
-      </fieldset>
-
-      <fieldset>
-        <legend>Bitcoin accepted</legend>
-        <p><small>Prefer these specific tags over the outdated "accepts bitcoin" tag.</small></p>
-        <label>Bitcoin (any form)
-          <select id="osmCurrencyXbt">
-            <option value="">Unset</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-            <option value="only">Only</option>
-          </select>
-        </label>
-        <label>On-chain
-          <select id="osmPaymentOnchain">
-            <option value="">Unset</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
-        </label>
-        <label>Lightning
-          <select id="osmPaymentLightning">
-            <option value="">Unset</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
-        </label>
-        <label>Lightning (contactless)
-          <select id="osmPaymentLightningContactless">
-            <option value="">Unset</option>
-            <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
-        </label>
-      </fieldset>
-
-      <label>Organic
-        <select id="osmOrganic">
-          <option value="">Unset</option>
-          <option value="yes">Yes</option>
-          <option value="no">No</option>
-          <option value="only">Only</option>
-        </select>
-      </label>
-
-      <label>Wheelchair accessible
-        <select id="osmWheelchair">
-          <option value="">Unset</option>
-          <option value="yes">Yes</option>
-          <option value="limited">Limited</option>
-          <option value="no">No</option>
-        </select>
-        <small>Only set this if you're sure — a sign you saw, or your own experience. If unsure, mention it in the description instead.</small>
-      </label>
-
-      <fieldset>
-        <legend>Contact</legend>
-        <label>Phone<input type="tel" id="osmPhone"></label>
-        <label>Website<input type="url" id="osmWebsite" placeholder="https://"></label>
-        <label>Email<input type="email" id="osmEmail"></label>
-        <label>Facebook<input type="url" id="osmContactFacebook" placeholder="https://facebook.com/..."></label>
-        <label>Twitter / X<input type="url" id="osmContactTwitter" placeholder="https://twitter.com/..."></label>
-      </fieldset>
-
-      <fieldset>
-        <legend>What they sell</legend>
+        <legend>What they sell <span class="field-tag optional">optional</span></legend>
         <label>Produce
           <small>Raw or lightly processed, e.g. vegetables, eggs, honey.</small>
           <div class="chip-input" id="osmProduceChips">
@@ -331,7 +253,86 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
         </datalist>
       </fieldset>
 
-      <label>Description
+      <label>Opening hours <span class="field-tag optional">optional</span>
+        <input type="text" id="osmOpeningHours" placeholder="Mo-Fr 09:00-17:00; Sa-Su 10:00-17:00">
+        <small>Days as the first two letters, times in 24h with a leading zero (<code>09:00</code> not
+          <code>9:00</code>). <a href="https://wiki.openstreetmap.org/wiki/Key:opening_hours" target="_blank" rel="noopener noreferrer">More on the wiki</a>.</small>
+      </label>
+
+      <fieldset>
+        <legend>Contact <span class="field-tag optional">optional</span></legend>
+        <label>Phone<input type="tel" id="osmPhone"></label>
+        <label>Website<input type="url" id="osmWebsite" placeholder="https://"></label>
+        <label>Email<input type="email" id="osmEmail"></label>
+        <label>Facebook<input type="url" id="osmContactFacebook" placeholder="https://facebook.com/..."></label>
+        <label>Twitter / X<input type="url" id="osmContactTwitter" placeholder="https://twitter.com/..."></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Payment <span class="field-tag optional">optional</span></legend>
+        <label>Cash
+          <select id="osmPaymentCash">
+            <option value="">Unset</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Bitcoin accepted <span class="field-tag optional">optional</span></legend>
+        <p><small>Prefer these specific tags over the outdated "accepts bitcoin" tag.</small></p>
+        <label>Bitcoin (any form)
+          <select id="osmCurrencyXbt">
+            <option value="">Unset</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+            <option value="only">Only</option>
+          </select>
+        </label>
+        <label>On-chain
+          <select id="osmPaymentOnchain">
+            <option value="">Unset</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label>Lightning
+          <select id="osmPaymentLightning">
+            <option value="">Unset</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+        <label>Lightning (contactless)
+          <select id="osmPaymentLightningContactless">
+            <option value="">Unset</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </label>
+      </fieldset>
+
+      <label>Organic <span class="field-tag optional">optional</span>
+        <select id="osmOrganic">
+          <option value="">Unset</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+          <option value="only">Only</option>
+        </select>
+      </label>
+
+      <label>Wheelchair accessible <span class="field-tag optional">optional</span>
+        <select id="osmWheelchair">
+          <option value="">Unset</option>
+          <option value="yes">Yes</option>
+          <option value="limited">Limited</option>
+          <option value="no">No</option>
+        </select>
+        <small>Only set this if you're sure — a sign you saw, or your own experience. If unsure, mention it in the description instead.</small>
+      </label>
+
+      <label>Description <span class="field-tag optional">optional</span>
         <textarea id="osmDescription" placeholder="A sentence or two — objective, not an advert."></textarea>
       </label>
 

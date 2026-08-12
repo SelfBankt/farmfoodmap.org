@@ -284,6 +284,29 @@ svg.leaflet-attribution-flag {
   font-size: 12px;
 }
 
+.field-tag {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+}
+
+.field-tag.required {
+  color: var(--ffm-green);
+  text-transform: uppercase;
+}
+
+.field-tag.optional {
+  color: var(--card-text-muted);
+  font-weight: 400;
+  font-style: italic;
+  text-transform: none;
+}
+
+#addLocationForm fieldset > legend .field-tag {
+  margin-left: 4px;
+}
+
 #addLocationForm small a {
   color: var(--ffm-green);
 }
