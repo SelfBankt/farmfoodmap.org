@@ -72,13 +72,20 @@ svg.leaflet-attribution-flag {
   display: none !important;
 }
 
-#infoBar {
+#infoBarWrap {
   position: absolute;
   bottom: 20px;
   z-index: 999;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+#infoBar {
   padding: 14px;
   border-radius: var(--radius-md);
-  left: 10px;
   font-size: x-small;
   color: var(--ffm-green);
   background-color: var(--card-bg);
@@ -87,11 +94,19 @@ svg.leaflet-attribution-flag {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   cursor: pointer;
-  width: 148px;
+  /* hugs its icons/About button rather than a fixed width sized for the
+     status text, which now lives outside the box (see #statusText) */
+  width: max-content;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
+  text-align: left;
+}
+
+#statusText {
+  font-size: x-small;
+  color: var(--ffm-green);
   text-align: left;
 }
 

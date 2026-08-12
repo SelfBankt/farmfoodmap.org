@@ -105,7 +105,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
     <img src="/FFM_logo.png" />
   </div>
   <div id="settings" class="custom-button" onclick="()=>{}"></div>
-  <div id="infoBar" class="hidden" onclick="()=>{}">
+  <div id="infoBarWrap" class="hidden">
+  <div id="infoBar" onclick="()=>{}">
     <a href="https://twitter.com/farmfoodmap" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter / X"><svg xmlns="http://www.w3.org/2000/svg" class="svg-social"
         id="svg-icon-twitter" viewBox="0 0 512 512">
         <path
@@ -127,7 +128,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
         </g>
       </svg></span>
     <a id="aboutLink" class="btn" title="Learn more about Farm Food Map">ABOUT</a>
-    <span id="statusText"></span>
+  </div>
+  <span id="statusText"></span>
   </div>
   <div id="myModal" class="modal">
 
@@ -375,13 +377,13 @@ const FFMM = L.icon({
 });
 
 const settings = document.getElementById('settings');
-const infoBar = document.getElementById('infoBar');
+const infoBarWrap = document.getElementById('infoBarWrap');
 settings?.addEventListener('mouseenter', () => {
   settings.classList.add('hidden');
-  infoBar?.classList.remove('hidden');
+  infoBarWrap?.classList.remove('hidden');
 });
-infoBar?.addEventListener('mouseleave', () => {
-  infoBar.classList.add('hidden');
+infoBarWrap?.addEventListener('mouseleave', () => {
+  infoBarWrap.classList.add('hidden');
   settings?.classList.remove('hidden');
 });
 
