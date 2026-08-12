@@ -33,6 +33,8 @@ declare global {
   interface Window {
     editMap: Function;
     sharePopup: Function;
+    claimNostr: Function;
+    submitNostrClaim: Function;
     markers: L.MarkerClusterGroup;
   }
 }
@@ -51,6 +53,11 @@ declare namespace Intl {
     public format: (items: string[]) => string;
   }
 }
+
+// GitHub Pages (farmfoodmap.org) is static-only and can't run serverless functions, so the
+// Nostr-claim API only exists on the Vercel deployment — this is a deliberate cross-origin call
+// regardless of which domain the app itself is being served from.
+const CLAIM_API_ROOT = 'https://farmfoodmap-org.vercel.app';
 
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
@@ -964,7 +971,11 @@ const formatPopup = (place: MapData): string => {
             p.id
           }')">Edit</div><div class="btn" onclick="sharePopup(this,'${btoa(
     encodeURIComponent(JSON.stringify(shareData))
-  )}')">Share</div>`;
+  )}')">Share</div>${
+    !p.nostr && (p.tags['email'] || p.tags['contact:email'])
+      ? `<div class="btn" onclick="claimNostr('${p.id}')">Claim with Nostr</div>`
+      : ''
+  }<div id="claimForm-${p.id}" class="claim-form"></div>`;
   return info;
 };
 
@@ -1616,6 +1627,47 @@ window.editMap = (nodeId = '') => {
     return;
   }
   openEditLocationForm(id);
+};
+
+// Toggles a one-field inline claim form open/closed inside the popup — nothing is submitted
+// until submitNostrClaim() is called.
+window.claimNostr = (nodeId: string) => {
+  const container = document.getElementById(`claimForm-${nodeId}`);
+  if (!container) return;
+  if (container.dataset.open === 'true') {
+    container.dataset.open = 'false';
+    container.innerHTML = '';
+    return;
+  }
+  container.dataset.open = 'true';
+  container.innerHTML = `
+    <input type="text" id="claimNip05-${nodeId}" placeholder="name@yourdomain.com" class="claim-input" />
+    <input type="text" id="claimHp-${nodeId}" class="claim-hp" tabindex="-1" autocomplete="off" />
+    <div class="btn" onclick="submitNostrClaim('${nodeId}')">Send verification email</div>
+  `;
+};
+
+window.submitNostrClaim = async (nodeId: string) => {
+  const container = document.getElementById(`claimForm-${nodeId}`);
+  const input = document.getElementById(
+    `claimNip05-${nodeId}`
+  ) as HTMLInputElement | null;
+  const hp = document.getElementById(`claimHp-${nodeId}`) as HTMLInputElement | null;
+  if (!container || !input) return;
+  const nip05 = input.value.trim();
+  if (!nip05) return;
+  container.innerHTML = 'Sending…';
+  try {
+    await fetch(`${CLAIM_API_ROOT}/api/claim`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ osmId: Number(nodeId), nip05, hp: hp?.value || '' }),
+    });
+  } catch (_e) {
+    // Falls through to the same generic message regardless of network failure, matching the
+    // server's own "don't reveal why a claim failed" response design.
+  }
+  container.innerHTML = 'Check your email to confirm this claim.';
 };
 
 const backToMap = () => {

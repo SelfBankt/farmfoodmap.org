@@ -1,7 +1,6 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { Buffer } from 'node:buffer';
-import { queryProfile } from 'nostr-tools/nip05';
-import { npubEncode } from 'nostr-tools/nip19';
+import { verifyNip05Claim } from './lib/nostrClaim.mjs';
 
 console.log(
   'Verifying curated Nostr (NIP-05) identities for farm listings...\nPlease be patient...'
@@ -29,31 +28,33 @@ try {
 
   for (const [id, nip05] of Object.entries(identities)) {
     const pid = `id${id}`;
-    if (Object.keys(globalData).length && !globalData[pid]) {
+    const farm = globalData[pid];
+    if (Object.keys(globalData).length && !farm) {
       console.warn(
         `Skipping ${nip05}: node id ${id} isn't a known farm in globalData.json (typo?).`
       );
       skippedCount++;
       continue;
     }
-    try {
-      const profile = await queryProfile(nip05);
-      if (!profile?.pubkey) {
-        console.warn(`Skipping ${nip05}: NIP-05 did not resolve to a pubkey.`);
-        skippedCount++;
-        continue;
-      }
-      verified[pid] = {
-        nip05,
-        pubkey: profile.pubkey,
-        npub: npubEncode(profile.pubkey),
-        verifiedAt: new Date().toISOString(),
+    const result = await verifyNip05Claim(nip05, farm?.tags);
+    if (!result.ok) {
+      const reasons = {
+        'email-mismatch':
+          "doesn't match this farm's email/contact:email tag on OSM — the OSM listing's email must match before this identity can be claimed.",
+        'not-resolved': 'NIP-05 did not resolve to a pubkey.',
+        'resolve-error': `${result.error?.message || result.error}`,
       };
-      verifiedCount++;
-    } catch (error) {
-      console.warn(`Skipping ${nip05}: ${error?.message || error}`);
+      console.warn(`Skipping ${nip05}: ${reasons[result.reason]}`);
       skippedCount++;
+      continue;
     }
+    verified[pid] = {
+      nip05,
+      pubkey: result.pubkey,
+      npub: result.npub,
+      verifiedAt: new Date().toISOString(),
+    };
+    verifiedCount++;
   }
 
   const data = new Uint8Array(Buffer.from(JSON.stringify(verified)));

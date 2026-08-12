@@ -510,6 +510,31 @@ svg.leaflet-attribution-flag {
   text-decoration: underline;
 }
 
+.claim-form:not(:empty) {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.85em;
+}
+
+.claim-input {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  font-size: 0.95em;
+}
+
+/* honeypot — hidden from real users, but not via display:none, since some bots skip that */
+.claim-hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
 .leaflet-popup-content-wrapper {
   background-color: var(--card-bg) !important;
   color: var(--card-text) !important;
