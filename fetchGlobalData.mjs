@@ -60,6 +60,8 @@ try {
     'url',
     'description',
     'note',
+    'wholesale',
+    'drink:raw_milk',
   ];
   joined.forEach((n) => {
     if (n.id && n.lat && n.lon && n.tags) {

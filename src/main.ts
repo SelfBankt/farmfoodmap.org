@@ -196,6 +196,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
 
       <label>Description <span class="field-tag optional">optional</span>
         <textarea id="osmDescription" placeholder="A sentence or two — objective, not an advert."></textarea>
+        <small>Good place to mention things with no dedicated field below, like a CSA/veg-box scheme or seasonal availability (e.g. "strawberries June–August").</small>
       </label>
 
       <fieldset>
@@ -255,6 +256,24 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
           <option value="no">No</option>
           <option value="only">Only</option>
         </select>
+      </label>
+
+      <label>Raw milk sold <span class="field-tag optional">optional</span>
+        <select id="osmRawMilk">
+          <option value="">Unset</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </label>
+
+      <label>Wholesale <span class="field-tag optional">optional</span>
+        <select id="osmWholesale">
+          <option value="">Unset</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+          <option value="only">Only</option>
+        </select>
+        <small>Sells to resellers or in bulk quantities, as opposed to (or as well as) individual retail customers.</small>
       </label>
 
       <fieldset>
@@ -705,6 +724,8 @@ const fetchData = debounce(() => {
         'url',
         'description',
         'note',
+        'wholesale',
+        'drink:raw_milk',
       ];
       j?.elements.forEach((n: MapData) => {
         const p: MapData = {
@@ -866,7 +887,9 @@ const formatPopup = (place: MapData): string => {
                 k === 'payment:lightning_contactless' ||
                 k === 'organic' ||
                 k === 'currency:XBT' ||
-                k === 'wheelchair'
+                k === 'wheelchair' ||
+                k === 'wholesale' ||
+                k === 'drink:raw_milk'
             )
             .map((k) => {
               p.tags[k] = p.tags[k]
@@ -878,6 +901,7 @@ const formatPopup = (place: MapData): string => {
                     .replace('_', ' ')
                     .replace(/^payment/, 'pay')
                     .replace('currency:XBT', 'Bitcoin accepted')
+                    .replace('drink:raw milk', 'Raw milk sold')
                     .replace(':', ' with ')
                 ) || '';
               const value =
@@ -1159,6 +1183,8 @@ const gatherFormTags = (): { [key: string]: string } => {
   set('payment:onchain', 'osmPaymentOnchain');
   set('payment:lightning', 'osmPaymentLightning');
   set('organic', 'osmOrganic');
+  set('drink:raw_milk', 'osmRawMilk');
+  set('wholesale', 'osmWholesale');
   set('wheelchair', 'osmWheelchair');
   set('phone', 'osmPhone');
   set('website', 'osmWebsite');
@@ -1190,6 +1216,8 @@ const populateForm = (tags: { [key: string]: string }) => {
   setFieldValue('osmPaymentOnchain', tags['payment:onchain'] || '');
   setFieldValue('osmPaymentLightning', tags['payment:lightning'] || '');
   setFieldValue('osmOrganic', tags.organic || '');
+  setFieldValue('osmRawMilk', tags['drink:raw_milk'] || '');
+  setFieldValue('osmWholesale', tags.wholesale || '');
   setFieldValue('osmWheelchair', tags.wheelchair || '');
   setFieldValue('osmPhone', tags.phone || '');
   setFieldValue('osmWebsite', tags.website || '');
