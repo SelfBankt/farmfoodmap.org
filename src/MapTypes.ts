@@ -7,6 +7,17 @@ export interface NostrIdentity {
 export interface NostrDataObject {
   [key: string]: NostrIdentity;
 }
+export interface NostrListing {
+  eventId: string;
+  title: string;
+  summary?: string;
+  priceAmount?: string;
+  priceCurrency?: string;
+  category: string;
+  location?: string;
+  content: string;
+  createdAt: number;
+}
 export interface MapData {
   ll?: L.LatLng;
   id: number;

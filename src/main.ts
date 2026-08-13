@@ -35,6 +35,10 @@ declare global {
     sharePopup: Function;
     claimNostr: Function;
     submitNostrClaim: Function;
+    toggleMarketForm: Function;
+    selectMarketCategory: Function;
+    updateMarketCustomCategory: Function;
+    publishNostrListing: Function;
     markers: L.MarkerClusterGroup;
   }
 }
@@ -914,8 +918,19 @@ const formatPopup = (place: MapData): string => {
         p.nostr.npub
       }" target="_blank" rel="noopener noreferrer">${p.nostr.nip05}</a></div>`
     : '';
+  // Live marketplace listings — not offline-safe like the badge above, so this section stays
+  // an empty placeholder here and is filled in asynchronously (see the popupopen listener and
+  // window.toggleMarketForm/publishNostrListing below) rather than computed in this function.
+  const marketSection = p.nostr
+    ? `<div class="market-section">
+       <div id="market-${p.id}" class="market-listings" data-node-id="${p.id}" data-pubkey="${p.nostr.pubkey}" data-fetch-state="idle"></div>
+       <div class="btn" onclick="toggleMarketForm('${p.id}')">+ List a product</div>
+       <div id="marketForm-${p.id}" class="market-form"></div>
+     </div>`
+    : '';
   let info = `<strong>${shopName}</strong><br>
         ${nostrBadge}
+        ${marketSection}
         ${
           address.length ? `<small>${address.join('<br>')}</small><br>` : ''
         }<br>
@@ -1543,6 +1558,35 @@ setBounds();
 map.on('moveend', setBounds);
 map.on('zoomend', setBounds);
 
+// Fetching a farm's live marketplace listings means querying real Nostr relays — not something
+// to do for every one of the thousands of markers on load, only for a popup someone actually
+// opens. data-fetch-state guards against re-querying the same still-open popup instance; a
+// pan/zoom-triggered marker rebuild (upsertMarker) naturally resets it, so a refresh still
+// re-fetches fresh listings.
+map.on('popupopen', (e: L.PopupEvent) => {
+  const el = e.popup.getElement();
+  const container = el?.querySelector<HTMLDivElement>(
+    '.market-listings[data-fetch-state="idle"]'
+  );
+  if (!container) return;
+  const pubkey = container.dataset.pubkey;
+  if (!pubkey) return;
+  container.dataset.fetchState = 'loading';
+  container.innerHTML = 'Loading marketplace listings…';
+  import('./nostrMarket').then(({ fetchListings, renderMarketListingsHtml }) => {
+    fetchListings(pubkey)
+      .then((listings) => {
+        container.dataset.fetchState = 'loaded';
+        container.innerHTML = renderMarketListingsHtml(listings);
+      })
+      .catch(() => {
+        container.dataset.fetchState = 'error';
+        container.innerHTML =
+          '<div class="market-error">Could not load listings right now.</div>';
+      });
+  });
+});
+
 const modal = document.getElementById('myModal');
 const closeButton = document.getElementById('modalClose') as HTMLElement;
 
@@ -1668,6 +1712,150 @@ window.submitNostrClaim = async (nodeId: string) => {
     // server's own "don't reveal why a claim failed" response design.
   }
   container.innerHTML = 'Check your email to confirm this claim.';
+};
+
+// Toggles the "list a product" form open/closed. Checked for a NIP-07 extension up front —
+// cheaper for the farm than filling in the whole form only to be blocked at Publish, and the
+// app must never accept a raw private key as a fallback, so "no extension" is a dead end that
+// needs to be surfaced clearly rather than silently degrading.
+window.toggleMarketForm = (nodeId: string) => {
+  const container = document.getElementById(`marketForm-${nodeId}`);
+  if (!container) return;
+  if (container.dataset.open === 'true') {
+    container.dataset.open = 'false';
+    container.innerHTML = '';
+    return;
+  }
+  if (!window.nostr) {
+    container.dataset.open = 'true';
+    container.innerHTML = `<div class="market-error">Publishing a listing requires a Nostr browser extension (e.g. <a href="https://getalby.com" target="_blank" rel="noopener noreferrer">Alby</a> or <a href="https://github.com/fiatjaf/nos2x" target="_blank" rel="noopener noreferrer">nos2x</a>). Install one, then reload this page and try again.</div>`;
+    return;
+  }
+  container.dataset.open = 'true';
+  container.innerHTML = 'Loading…';
+  import('./nostrMarket').then(({ renderMarketFormHtml }) => {
+    container.innerHTML = renderMarketFormHtml(nodeId);
+  });
+};
+
+// Toggles which category chip is selected without re-rendering the whole form (that would wipe
+// out anything already typed in the title/price/description fields).
+window.selectMarketCategory = (nodeId: string, tag: string, chipEl: HTMLElement) => {
+  const list = chipEl.parentElement;
+  list?.querySelectorAll('.market-chip').forEach((c) => c.classList.remove('selected'));
+  chipEl.classList.add('selected');
+  const hidden = document.getElementById(
+    `marketCategory-${nodeId}`
+  ) as HTMLInputElement | null;
+  const customInput = document.getElementById(
+    `marketCustomCategory-${nodeId}`
+  ) as HTMLInputElement | null;
+  if (tag === 'custom') {
+    if (customInput) customInput.style.display = 'block';
+    import('./nostrMarket').then(({ slugify }) => {
+      if (hidden) hidden.value = customInput?.value ? slugify(customInput.value) : '';
+    });
+  } else {
+    if (customInput) customInput.style.display = 'none';
+    if (hidden) hidden.value = tag;
+  }
+};
+
+window.updateMarketCustomCategory = (nodeId: string) => {
+  const customInput = document.getElementById(
+    `marketCustomCategory-${nodeId}`
+  ) as HTMLInputElement | null;
+  const hidden = document.getElementById(
+    `marketCategory-${nodeId}`
+  ) as HTMLInputElement | null;
+  if (!hidden || !customInput) return;
+  import('./nostrMarket').then(({ slugify }) => {
+    hidden.value = slugify(customInput.value);
+  });
+};
+
+window.publishNostrListing = async (nodeId: string) => {
+  const errorEl = document.getElementById(`marketPublishError-${nodeId}`);
+  const titleInput = document.getElementById(
+    `marketTitle-${nodeId}`
+  ) as HTMLInputElement | null;
+  const amountInput = document.getElementById(
+    `marketAmount-${nodeId}`
+  ) as HTMLInputElement | null;
+  const currencyInput = document.getElementById(
+    `marketCurrency-${nodeId}`
+  ) as HTMLInputElement | null;
+  const descriptionInput = document.getElementById(
+    `marketDescription-${nodeId}`
+  ) as HTMLTextAreaElement | null;
+  const categoryInput = document.getElementById(
+    `marketCategory-${nodeId}`
+  ) as HTMLInputElement | null;
+  const title = titleInput?.value.trim();
+  const categoryTag = categoryInput?.value.trim();
+  if (!title || !categoryTag) {
+    if (errorEl)
+      errorEl.innerHTML =
+        '<div class="market-error">Pick a category and enter a title.</div>';
+    return;
+  }
+  const place = mapData[`id${nodeId}`];
+  const pubkey = place?.nostr?.pubkey;
+  if (!place || !pubkey) return;
+
+  const { buildUnsignedEvent, publishListing, renderMarketListingsHtml } = await import(
+    './nostrMarket'
+  );
+
+  // Soft check only — a mismatched signer just means the listing won't later show up under
+  // this farm (relays independently verify signatures), not a spoofing risk. Still worth
+  // telling the farm so they're not confused later about why nothing appeared.
+  let warning = '';
+  if (window.nostr) {
+    try {
+      const activePubkey = await window.nostr.getPublicKey();
+      if (activePubkey !== pubkey) {
+        warning =
+          "Note: this extension's identity doesn't match this farm's claimed Nostr identity — your listing may not show up here later.<br>";
+      }
+    } catch (_e) {
+      // non-fatal — signEvent below will surface any real problem with the extension
+    }
+  }
+  if (errorEl) errorEl.innerHTML = warning + 'Publishing…';
+
+  const unsignedEvent = buildUnsignedEvent({
+    pubkey,
+    title,
+    amount: amountInput?.value.trim() || undefined,
+    currency: currencyInput?.value.trim() || 'USD',
+    categoryTag,
+    address: makeAddressArray(place),
+    description: descriptionInput?.value.trim() || undefined,
+  });
+
+  const result = await publishListing(unsignedEvent);
+  if (!result.ok) {
+    if (errorEl)
+      errorEl.innerHTML = warning + `<div class="market-error">${result.error}</div>`;
+    return;
+  }
+  if (errorEl) errorEl.innerHTML = warning;
+
+  const listingsContainer = document.getElementById(`market-${nodeId}`);
+  if (listingsContainer) {
+    const emptyMsg = listingsContainer.querySelector('.market-empty');
+    if (emptyMsg) emptyMsg.remove();
+    listingsContainer.insertAdjacentHTML(
+      'afterbegin',
+      renderMarketListingsHtml([result.listing])
+    );
+  }
+  const formContainer = document.getElementById(`marketForm-${nodeId}`);
+  if (formContainer) {
+    formContainer.dataset.open = 'false';
+    formContainer.innerHTML = '<div class="market-empty">Listing published!</div>';
+  }
 };
 
 const backToMap = () => {

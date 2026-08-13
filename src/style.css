@@ -535,6 +535,69 @@ svg.leaflet-attribution-flag {
   opacity: 0;
 }
 
+.market-section {
+  margin-top: 8px;
+}
+
+.market-listings:not(:empty) {
+  margin-bottom: 6px;
+}
+
+.market-listing-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  font-size: 0.85em;
+}
+
+.market-empty,
+.market-error {
+  color: var(--card-text-muted);
+  font-size: 0.85em;
+}
+
+.market-form:not(:empty) {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.85em;
+}
+
+.market-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.market-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 2em;
+  font-size: 0.85em;
+  cursor: pointer;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+}
+
+.market-chip.selected {
+  background-color: var(--ffm-green-glass);
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.market-price-row {
+  display: flex;
+  gap: 6px;
+}
+
+.market-price-row .claim-input {
+  flex: 1;
+}
+
 .leaflet-popup-content-wrapper {
   background-color: var(--card-bg) !important;
   color: var(--card-text) !important;
