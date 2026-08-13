@@ -429,6 +429,15 @@ const darkMatter = L.tileLayer(
     maxZoom: 20,
   }
 );
+const voyager = L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+  {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 20,
+  }
+);
 const cycle = L.tileLayer(
   'https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png',
   {
@@ -446,6 +455,7 @@ const railway = L.tileLayer(
   }
 );
 const baseLayers = {
+  Voyager: voyager,
   OpenStreetMap: osm,
   Streets: streets,
   Satellite: satellite,
@@ -455,7 +465,7 @@ const baseLayers = {
 };
 
 const map = L.map('map', {
-  layers: [osm],
+  layers: [voyager],
   zoomControl: false,
 }).setView([0, 0], 3);
 const moveMapToSavedPosition = () => {
@@ -482,11 +492,6 @@ try {
     moveMapToSavedPosition();
   }
 } catch (_) {}
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution:
-    '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-}).addTo(map);
 map.addLayer(markers);
 let isInAddMode = false;
 let addModeButton: HTMLElement | null = null;

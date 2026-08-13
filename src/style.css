@@ -65,6 +65,9 @@ section {
   max-width: 100%;
   max-height: 100%;
 }
+.leaflet-tile-pane {
+  filter: saturate(2) contrast(0.95);
+}
 .leaflet-control-layers-base {
   text-align: left;
 }
