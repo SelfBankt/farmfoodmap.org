@@ -21,13 +21,13 @@
      the system theme — the map tiles are the thing that varies, not these.
      Semi-transparent + backdrop-filter blur gives the frosted-glass effect;
      the inset highlight in --card-shadow mimics light catching a glass edge. */
-  --card-bg: rgba(255, 255, 255, 0.6);
+  --card-bg: rgba(255, 255, 255, 0.38);
   --card-text: #1a1a1a;
   --card-text-muted: #5a5a5a;
   --card-border: rgba(255, 255, 255, 0.4);
   --card-shadow: 0 3px 14px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.5);
   --glass-blur: blur(18px);
-  --ffm-green-glass: rgba(61, 146, 81, 0.8);
+  --ffm-green-glass: rgba(61, 146, 81, 0.55);
   --radius-md: 12px;
   --radius-sm: 8px;
   --color-error: #c0392b;
@@ -231,7 +231,7 @@ svg.leaflet-attribution-flag {
 }
 
 .modal-content {
-  background-color: rgba(36, 36, 36, 0.72);
+  background-color: rgba(36, 36, 36, 0.45);
   color: var(--color-text);
   margin: 15% auto;
   padding: 20px;
@@ -269,7 +269,7 @@ svg.leaflet-attribution-flag {
   padding: 20px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
-  background-color: rgba(36, 36, 36, 0.55);
+  background-color: rgba(36, 36, 36, 0.35);
   box-shadow: var(--card-shadow);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
@@ -479,7 +479,7 @@ svg.leaflet-attribution-flag {
 }
 
 .custom-button:hover {
-  background-color: rgba(255, 255, 255, 0.78);
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 /* persistent indicator for "add a location" mode — the icon itself only swaps
@@ -634,7 +634,7 @@ svg.leaflet-attribution-flag {
 }
 
 .leaflet-bar a:hover {
-  background-color: rgba(255, 255, 255, 0.85) !important;
+  background-color: rgba(255, 255, 255, 0.55) !important;
 }
 
 /* the search input reuses .custom-button's sizing/shape (see below); these
