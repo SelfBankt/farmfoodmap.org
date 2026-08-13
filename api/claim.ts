@@ -8,7 +8,7 @@ import { applyCors, handlePreflight } from './_cors';
 export const config = { runtime: 'nodejs20.x' };
 
 const RESEND_API_URL = 'https://api.resend.com/emails';
-const VERIFY_BASE_URL = 'https://farmfoodmap-org.vercel.app/api/verify-claim';
+const VERIFY_BASE_URL = 'https://farmfoodmap-org-xi.vercel.app/api/verify-claim';
 
 type MapData = { id: number; tags: { [key: string]: string } };
 type MapDataObject = { [key: string]: MapData };

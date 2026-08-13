@@ -57,7 +57,7 @@ declare namespace Intl {
 // GitHub Pages (farmfoodmap.org) is static-only and can't run serverless functions, so the
 // Nostr-claim API only exists on the Vercel deployment — this is a deliberate cross-origin call
 // regardless of which domain the app itself is being served from.
-const CLAIM_API_ROOT = 'https://farmfoodmap-org.vercel.app';
+const CLAIM_API_ROOT = 'https://farmfoodmap-org-xi.vercel.app';
 
 const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {

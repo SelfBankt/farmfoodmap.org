@@ -1,11 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // Exact allow-list, never a wildcard — this endpoint has real side effects (sends email,
-// opens PRs). Both origins are already treated as legitimate first-party surfaces elsewhere in
-// this repo (see the OSM OAuth redirect URI comment in src/osmAuth.ts).
+// opens PRs). farmfoodmap.org is the primary site (GitHub Pages); farmfoodmap-org-xi.vercel.app
+// is the Vercel mirror that actually hosts this API (GitHub Pages can't run functions) — both
+// are legitimate first-party origins for the app's own UI to call from.
 const ALLOWED_ORIGINS = [
   'https://farmfoodmap.org',
-  'https://farmfoodmap-org.vercel.app',
+  'https://farmfoodmap-org-xi.vercel.app',
 ];
 
 export const applyCors = (req: VercelRequest, res: VercelResponse) => {
