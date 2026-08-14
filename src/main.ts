@@ -1003,7 +1003,7 @@ const formatPopup = (place: MapData): string => {
     encodeURIComponent(JSON.stringify(shareData))
   )}')">Share</div>${
     !p.nostr && (p.tags['email'] || p.tags['contact:email'])
-      ? `<div class="btn" onclick="claimNostr('${p.id}')">Claim with Nostr</div>`
+      ? `<div class="btn" onclick="claimNostr('${p.id}')">Claim business</div>`
       : ''
   }<div id="claimForm-${p.id}" class="claim-form"></div>`;
   return info;
@@ -1700,6 +1700,7 @@ window.claimNostr = (nodeId: string) => {
   }
   container.dataset.open = 'true';
   container.innerHTML = `
+    <p class="claim-instructions">Enter your Nostr NIP-05 identity below. We'll email this listing's address on file — click the link inside to confirm you own this business and link your identity here.</p>
     <input type="text" id="claimNip05-${nodeId}" placeholder="name@yourdomain.com" class="claim-input" />
     <input type="text" id="claimHp-${nodeId}" class="claim-hp" tabindex="-1" autocomplete="off" />
     <div class="btn" onclick="submitNostrClaim('${nodeId}')">Send verification email</div>

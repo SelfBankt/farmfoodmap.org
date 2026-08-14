@@ -526,6 +526,12 @@ svg.leaflet-attribution-flag {
   font-size: 0.85em;
 }
 
+.claim-instructions {
+  margin: 0 0 8px;
+  color: var(--card-text-muted);
+  text-align: left;
+}
+
 .claim-input {
   box-sizing: border-box;
   width: 100%;
