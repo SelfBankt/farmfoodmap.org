@@ -117,6 +117,57 @@ svg.leaflet-attribution-flag {
   position: relative;
 }
 
+/* bottom-anchored, so it opens upward above the ABOUT button rather than
+   running off the bottom of the screen. Only shown while #aboutRow (button +
+   popup together) is hovered, and only once opened via a click on ABOUT —
+   see the "about-open" toggle in main.ts — so rolling off hides it and
+   rolling back over (without re-clicking) brings it back. */
+#aboutPopup {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: 8px;
+  z-index: 99999;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  padding: 14px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--card-shadow);
+  max-height: 60vh;
+  overflow-y: auto;
+  width: max-content;
+  max-width: min(340px, calc(100vw - 40px));
+  text-align: left;
+  color: var(--card-text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#aboutRow.about-open:hover #aboutPopup {
+  display: block;
+}
+
+#aboutPopup h1 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+#aboutPopup p {
+  margin: 0 0 8px;
+}
+
+#aboutPopup ol {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+
+#aboutPopup a {
+  color: var(--ffm-green);
+}
+
 /* sits directly beside the ADD FARM button (its wrapping .control-row is the
    positioning parent), mirroring the button's own rounded-card look rather
    than floating as a banner at the bottom of the screen */
@@ -265,7 +316,6 @@ svg.leaflet-attribution-flag {
   width: 100%;
 }
 
-#aboutPage > article,
 #addLocationForm > article {
   margin: 5% auto;
   margin-top: 10px;

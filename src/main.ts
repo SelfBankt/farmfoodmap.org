@@ -140,7 +140,20 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
           <path d="M128 173c-5 0-9-4-9-9V91a8 8 0 1 1 17 0v73c0 5-3 9-8 9z" />
         </g>
       </svg></span>
-    <a id="aboutLink" class="btn" title="Learn more about Farm Food Map">ABOUT</a>
+    <div class="control-row" id="aboutRow">
+      <a id="aboutLink" class="btn" title="Learn more about Farm Food Map">ABOUT</a>
+      <div id="aboutPopup">
+        <h1>ABOUT</h1>
+        <p>Contribute to the worlds largest, borderless, farm food map - built on local open data.</p>
+        <ol>
+          <li>Discover local farmers at <a href="https://farmfoodmap.org" target="_blank" noreferrer noopener>farmfoodmap.org</a></li>
+          <li>Shake your farmers hand & eat local</li>
+          <li>Add, edit & verify listings - right here in the app, no separate editor needed</li>
+        </ol>
+        <p>Growing local circular economies - globally. Mapping where to buy real food, direct from independent farmers, food producers, farm shops, growers, farmers markets & co-ops.</p>
+        <p>Our mission is to provide access to this valuable, free and open data, fully editable by users, on beautiful open source mobile web apps. Every listing lives on <a href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, the open map anyone can edit - so what you add here is portable data that outlives any one app, not locked into a platform. Log in with your OpenStreetMap account to add a farm shop or edit an existing one straight from the map, capturing details like opening hours, payment methods (including Bitcoin), organic status, wholesale availability and raw milk sales.</p>
+      </div>
+    </div>
   </div>
   </div>
   <div id="myModal" class="modal">
@@ -170,24 +183,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
 
   </div>
   <div id="map"></div>
-</section>
-<section id="aboutPage" class="pages hidden">
-  <span class="backToMap btn">
-    Back to the map
-  </span>
-  <article>
-    <h1>ABOUT</h1>
-    <p>Contribute to the worlds largest, borderless, farm food map - built on local open data.</p>
-    <ol>
-      <li>Discover local farmers at <a href="https://farmfoodmap.org" target="_blank" noreferrer noopener>farmfoodmap.org</a></li>
-      <li>Shake your farmers hand & eat local</li>
-      <li>Add, edit & verify listings - right here in the app, no separate editor needed</li>
-    </ol>
-    <p>Growing local circular economies - globally. Mapping where to buy real food, direct from independent farmers, food producers, farm shops, growers, farmers markets & co-ops.</p>
-    <p>Our mission is to provide access to this valuable, free and open data, fully editable by users, on beautiful open source mobile web apps. Every listing lives on <a href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, the open map anyone can edit - so what you add here is portable data that outlives any one app, not locked into a platform. Log in with your OpenStreetMap account to add a farm shop or edit an existing one straight from the map, capturing details like opening hours, payment methods (including Bitcoin), organic status, wholesale availability and raw milk sales.</p>
-    <p>Follow us on <a href="https://www.twitter.com/farmfoodmap" target="_blank" noreferrer noopener>Twitter @farmfoodmap</a> and <a href="https://www.instagram.com/farmfoodmap" target="_blank" noreferrer noopener>Instagram @farmfoodmap</a></p>
-    </p>
-  </article>
 </section>
 <section id="addLocationForm" class="pages hidden">
   <div class="backToMap btn">
@@ -1846,11 +1841,11 @@ const backToMap = () => {
   document.getElementById('mapPage')?.classList.remove('hidden');
 };
 
+// toggles the ABOUT text open/closed; while open it's still only visible on
+// hover of #aboutRow (see CSS), so rolling off hides it and rolling back over
+// (without re-clicking) brings it back
 document.getElementById('aboutLink')?.addEventListener('click', () => {
-  document.querySelectorAll('.pages').forEach((p) => {
-    p.classList.add('hidden');
-  });
-  document.getElementById('aboutPage')?.classList.remove('hidden');
+  document.getElementById('aboutRow')?.classList.toggle('about-open');
 });
 
 document.querySelectorAll('.backToMap').forEach((b) => {
