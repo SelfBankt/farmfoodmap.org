@@ -646,6 +646,19 @@ svg.leaflet-attribution-flag {
   background-color: rgba(255, 255, 255, 0.55) !important;
 }
 
+.leaflet-control-layers {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: var(--card-shadow) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+}
+
+.leaflet-control-layers-expanded {
+  background-color: var(--card-bg) !important;
+  color: var(--card-text) !important;
+}
+
 /* the search input reuses .custom-button's sizing/shape (see below); these
    rules only cover what needs to differ for an editable text field */
 .search-input {

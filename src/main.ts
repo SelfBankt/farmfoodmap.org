@@ -399,36 +399,11 @@ infoBarWrap?.addEventListener('mouseleave', () => {
   settings?.classList.remove('hidden');
 });
 
-const mbAttr =
-  'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>';
-const mbUrl =
-  'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
 const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 19,
   attribution:
     '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
 });
-const streets = L.tileLayer(mbUrl, {
-  id: 'mapbox/streets-v11',
-  tileSize: 512,
-  zoomOffset: -1,
-  attribution: mbAttr,
-});
-const satellite = L.tileLayer(mbUrl, {
-  id: 'mapbox/satellite-v9',
-  tileSize: 512,
-  zoomOffset: -1,
-  attribution: mbAttr,
-});
-const darkMatter = L.tileLayer(
-  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 20,
-  }
-);
 const voyager = L.tileLayer(
   'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
   {
@@ -446,22 +421,10 @@ const cycle = L.tileLayer(
       '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }
 );
-const railway = L.tileLayer(
-  'https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png',
-  {
-    maxZoom: 19,
-    attribution:
-      'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | Map style: &copy; <a href="https://www.OpenRailwayMap.org">OpenRailwayMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)',
-  }
-);
 const baseLayers = {
   Voyager: voyager,
   OpenStreetMap: osm,
-  Streets: streets,
-  Satellite: satellite,
-  Dark: darkMatter,
   Cycle: cycle,
-  Railway: railway,
 };
 
 const map = L.map('map', {
