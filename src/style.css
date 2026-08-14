@@ -159,13 +159,6 @@ svg.leaflet-attribution-flag {
     margin-top: 10px;
     max-width: calc(100vw - 40px);
   }
-
-  /* the centered logo (#heading, top:5px + 60px tall) sits above the
-     topleft Leaflet controls at this width, so drop the whole stack
-     (search/add farm/my location/zoom) below it instead of under it */
-  .leaflet-top.leaflet-left {
-    top: 80px;
-  }
 }
 
 #addLocationCancel {

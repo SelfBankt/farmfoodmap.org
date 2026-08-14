@@ -693,10 +693,12 @@ const customControl = L.Control.extend({
   },
 });
 
-map.addControl(new customControl());
-// Added after the custom control (rather than left as the default auto-added control) so it
-// stacks below the ADD FARM/MY LOCATION/SEARCH buttons in the topleft corner, not above them.
+// Added before the custom control (rather than left as the default auto-added control) so it
+// stacks above the SEARCH/ADD FARM/MY LOCATION buttons in the topleft corner. Being narrow,
+// it clears the centered logo (#heading) on phones without needing to be pushed down — the
+// wider buttons below it then start low enough to clear the logo too.
 L.control.zoom({ position: 'topleft' }).addTo(map);
+map.addControl(new customControl());
 
 const updateInfo = (message = 'MAP IS READY') => {
   const statusText = document.querySelector('#statusText');
