@@ -537,6 +537,16 @@ const customControl = L.Control.extend({
     searchResultsDiv.id = 'searchResults';
     searchWrap.append(searchResultsDiv);
 
+    // results otherwise stay open (covering the map) once the mouse moves away;
+    // rolling off searchWrap (input + dropdown) hides them, rolling back over
+    // it (without retyping) brings them back
+    searchWrap.addEventListener('mouseleave', () => {
+      searchResultsDiv.classList.add('search-hidden');
+    });
+    searchWrap.addEventListener('mouseenter', () => {
+      searchResultsDiv.classList.remove('search-hidden');
+    });
+
     searchBoxInput.addEventListener('input', () => {
       const text = searchBoxInput.value;
       searchResultsDiv.innerHTML = '';
