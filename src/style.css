@@ -142,7 +142,7 @@ svg.leaflet-attribution-flag {
   max-width: min(340px, calc(100vw - 40px));
   text-align: left;
   color: var(--card-text);
-  font-size: 12px;
+  font-size: 13.2px;
   line-height: 1.5;
 }
 
@@ -152,7 +152,7 @@ svg.leaflet-attribution-flag {
 
 #aboutPopup h1 {
   margin: 0 0 8px;
-  font-size: 14px;
+  font-size: 15.4px;
 }
 
 #aboutPopup p {
