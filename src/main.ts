@@ -149,6 +149,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = /*html*/ `
           <li>Discover local farmers at <a href="https://farmfoodmap.org" target="_blank" noreferrer noopener>farmfoodmap.org</a></li>
           <li>Shake your farmers hand & eat local</li>
           <li>Add, edit & verify listings - right here in the app, no separate editor needed</li>
+          <li>Claim your farm shop by verifying the listed business email, so you can edit and augment your listing with photos, marketplace, and more</li>
         </ol>
         <p>Growing local circular economies - globally. Mapping where to buy real food, direct from independent farmers, food producers, farm shops, growers, farmers markets & co-ops.</p>
         <p>Our mission is to provide access to this valuable, free and open data, fully editable by users, on beautiful open source mobile web apps. Every listing lives on <a href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>, the open map anyone can edit - so what you add here is portable data that outlives any one app, not locked into a platform. Log in with your OpenStreetMap account to add a farm shop or edit an existing one straight from the map, capturing details like opening hours, payment methods (including Bitcoin), organic status, wholesale availability and raw milk sales.</p>
